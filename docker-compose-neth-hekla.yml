@@ -28,7 +28,9 @@ services:
       --JsonRpc.Host=0.0.0.0
       --JsonRpc.JwtSecretFile=/data/jwtsecret
       --JsonRpc.EnabledModules=debug,eth,subscribe,net,web3,txpool,taiko
-      --JsonRpc.AdditionalRpcUrls="[http://0.0.0.0:8551|http;ws|net;eth;subscribe;engine;web3;client;taiko]"
+      --JsonRpc.EngineHost=0.0.0.0
+      --JsonRpc.EnginePort=8551
+      --JsonRpc.EngineEnabledModules=net,eth,subscribe,engine,web3,client,taiko
       --Network.P2PPort=${PORT_L2_EXECUTION_ENGINE_P2P}
       --Network.DiscoveryPort=${PORT_L2_EXECUTION_ENGINE_P2P}
       ${EL2_ADDITIONAL_ARGS:-}
