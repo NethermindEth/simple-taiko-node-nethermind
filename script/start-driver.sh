@@ -14,7 +14,11 @@ if [ "$DISABLE_P2P_SYNC" = "false" ]; then
         --jwtSecret /data/taiko-geth/geth/jwtsecret \
         --p2p.sync \
         --p2p.checkPointSyncUrl "${P2P_SYNC_URL}" \
-        --verbosity "${VERBOSITY}"
+        --verbosity "${VERBOSITY}" \
+        --p2p.disable \
+        --preconfirmation.serverPort 17300
+        #  \
+        # --preconfirmation.jwtSecret /data/taiko-geth/geth/jwtsecret
 else
     exec taiko-client driver \
         --l1.ws "${L1_ENDPOINT_WS}" \
@@ -24,5 +28,9 @@ else
         --taikoL1 "${TAIKO_L1_ADDRESS}" \
         --taikoL2 "${TAIKO_L2_ADDRESS}" \
         --jwtSecret /data/taiko-geth/geth/jwtsecret \
-        --verbosity "${VERBOSITY}"
+        --verbosity "${VERBOSITY}" \
+        --p2p.disable \
+        --preconfirmation.serverPort 17300
+        # \
+        # --preconfirmation.jwtSecret /data/taiko-geth/geth/jwtsecret
 fi

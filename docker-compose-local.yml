@@ -1,0 +1,127 @@
+x-logging: &logging
+  logging:
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  l2_execution_engine:
+    image: nethswitchboard/preconf-taiko-geth:whitelist
+    # nethswitchboard/preconf-taiko-geth:whitelist
+    #
+    restart: unless-stopped
+    # pull_policy: always
+    env_file:
+      - .env
+    stop_grace_period: 3m
+    volumes:
+      - ./execution-data-taiko:/data/taiko-geth
+      - ~/taiko-geth/genesis.json:/data/taiko-geth/genesis.json
+    ports:
+      - "${PORT_L2_EXECUTION_ENGINE_METRICS}:6060"
+      - "${PORT_L2_EXECUTION_ENGINE_HTTP}:8545"
+      - "${PORT_L2_EXECUTION_ENGINE_WS}:8546"
+      - "${PORT_L2_EXECUTION_ENGINE_P2P}:${PORT_L2_EXECUTION_ENGINE_P2P}"
+      - "${PORT_L2_EXECUTION_ENGINE_P2P}:${PORT_L2_EXECUTION_ENGINE_P2P}/udp"
+      - "8551:8551"
+    command: |
+      --taiko
+      --networkid "${CHAIN_ID}"
+      --gcmode archive
+      --datadir /data/taiko-geth
+      --metrics
+      --metrics.addr "0.0.0.0"
+      --authrpc.addr "0.0.0.0"
+      --authrpc.vhosts "*"
+      --http
+      --http.api debug,eth,net,web3,txpool,taiko
+      --http.addr "0.0.0.0"
+      --http.vhosts "*"
+      --ws
+      --ws.api debug,eth,net,web3,txpool,taiko
+      --ws.addr "0.0.0.0"
+      --ws.origins "*"
+      --gpo.defaultprice "10000000"
+      --port ${PORT_L2_EXECUTION_ENGINE_P2P}
+      --discovery.port ${PORT_L2_EXECUTION_ENGINE_P2P}
+      --maxpeers ${MAXPEERS:-50}
+      --maxpendpeers ${MAXPENDPEERS:-0}
+      ${GETH_ADDITIONAL_ARGS:-}
+    <<: *logging
+    profiles:
+      - l2_execution_engine
+      - prover
+      - proposer
+
+  taiko_client_driver:
+    image: nethswitchboard/preconf-taiko-client:whitelist
+    # nethswitchboard/preconf-taiko-client:pacaya
+    #nethswitchboard/preconf-taiko-client:whitelist
+    #nethswitchboard/preconf-taiko-client:latest
+    restart: unless-stopped
+    # pull_policy: always
+    depends_on:
+      - l2_execution_engine
+    env_file:
+      - .env
+    volumes:
+      - ./execution-data-taiko:/data/taiko-geth
+      - ./script:/script
+      - ~/taiko-geth/genesis.json:/data/taiko-geth/genesis.json
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "/script/start-driver.sh"
+    <<: *logging
+    profiles:
+      - l2_execution_engine
+      - prover
+      - proposer
+    ports:
+      - "1235:1235"
+      - "17300:17300"
+
+  taiko_client_prover_relayer:
+    image: nethswitchboard/preconf-taiko-client:latest
+    restart: unless-stopped
+    # pull_policy: always
+    depends_on:
+      - l2_execution_engine
+      - taiko_client_driver
+    ports:
+      - "${PORT_PROVER_SERVER}:9876"
+    env_file:
+      - .env
+    volumes:
+      - ./script:/script
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "/script/start-prover-relayer.sh"
+    <<: *logging
+    profiles:
+      - prover
+
+  taiko_client_proposer:
+    image: nethswitchboard/preconf-taiko-client:latest
+    # nethswitchboard/taiko-client:debug
+    restart: unless-stopped
+    # pull_policy: always
+    depends_on:
+      - l2_execution_engine
+      - taiko_client_driver
+    env_file:
+      - .env
+    volumes:
+      - ./execution-data-taiko:/data/taiko-geth
+      - ./script:/script
+      - ~/taiko-geth/genesis.json:/data/taiko-geth/genesis.json
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "/script/start-proposer.sh"
+    <<: *logging
+    profiles:
+      - proposer
+    ports:
+      - "1234:1234"
