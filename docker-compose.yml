@@ -48,7 +48,7 @@ services:
   taiko-driver:
     container_name: taiko-driver
     # image: us-docker.pkg.dev/evmchain/images/taiko-client:main
-    image: nethswitchboard/preconf-taiko-client:whitelist
+    image: nethswitchboard/preconf-taiko-client:upstream
     restart: unless-stopped
     pull_policy: if_not_present
     volumes:
