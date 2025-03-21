@@ -18,7 +18,7 @@ services:
       # P2P
       - 30303:30303
     networks:
-      - mk1
+      - preconf
     # NOTE: Set networkid to 167010, because that's the preconf devnet ID
     command:
       - '--gcmode=archive'
@@ -58,7 +58,7 @@ services:
       # P2P
       - 9222:9222
     networks:
-      - mk1
+      - preconf
     # Inherit env vars from parent process
     env_file:
       - .env.driver
@@ -75,10 +75,23 @@ services:
       - '--p2p.listen.tcp=9222'
       - '--p2p.listen.udp=9222'
 
+  avs-node:
+    container_name: avs-node
+    image: nethswitchboard/preconf-avs-node:whitelist
+    restart: unless-stopped
+    pull_policy: if_not_present
+    volumes:
+      - ./jwtsecret.hex:/jwtsecret.hex:ro
+    networks:
+      - preconf
+    # Inherit env vars from parent process
+    env_file:
+      - .env.avs-node
+
 volumes:
   taiko-geth-data:
 
 
 networks:
-  mk1:
+  preconf:
     driver: bridge
