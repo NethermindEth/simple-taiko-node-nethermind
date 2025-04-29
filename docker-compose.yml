@@ -1,97 +1,118 @@
 # NOTE: the taiko images should be replaced with your versions
 
-# This is the docker-compose file for the Helder stack.
+# This is the docker-compose file for the Holesky Mesaya stack.
 services:
-  taiko-geth:
-    container_name: taiko-geth
-    image: nethswitchboard/taiko-geth:update_preonf_genesis
-    restart: unless-stopped
-    pull_policy: if_not_present
-    volumes:
-      - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-      - taiko-geth-data:/data/taiko-geth
-    ports:
-      # HTTP JSON-RPC
-      - 8545:8545
-      # WebSocket JSON-RPC
-      - 8546:8546
-      # P2P
-      - 30303:30303
-    networks:
-      - preconf
-    # NOTE: Set networkid to 167010, because that's the preconf devnet ID
-    command:
-      - '--gcmode=archive'
-      - '--syncmode=full'
-      - '--datadir=/data/taiko-geth'
-      - '--networkid=167010'
-      - '--port=30303'
-      - '--metrics'
-      - '--metrics.addr=0.0.0.0'
-      - '--http'
-      - '--http.addr=0.0.0.0'
-      - '--http.vhosts=*'
-      - '--http.corsdomain=*'
-      - '--ws'
-      - '--ws.addr=0.0.0.0'
-      - '--ws.origins=*'
-      - '--authrpc.addr=0.0.0.0'
-      - '--authrpc.port=8551'
-      - '--authrpc.vhosts=*'
-      - '--authrpc.jwtsecret=/jwtsecret.hex'
-      - '--allow-insecure-unlock'
-      - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-      - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-      - '--bootnodes=enode://a3d89e39a8054c7e9317759f1540639ecc4285f1603609a02e5093715ec1077b99f6320c11d0e3ee1ba83ee00bbdf5b158138c31b27bafc0754a6f33abc4dd74@34.44.8.214:30303'
-      - '--taiko'
+    taiko-geth:
+        container_name: taiko-geth
+        image: nethswitchboard/taiko-geth:update_preonf_genesis
+        restart: unless-stopped
+        pull_policy: always
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
+            - taiko-geth-data:/data/taiko-geth
+        ports:
+            # HTTP JSON-RPC
+            - 8545:8545
+            # WebSocket JSON-RPC
+            - 8546:8546
+            # P2P
+            - 30303:30303
+        networks:
+            - preconf
+        # NOTE: Set networkid to 167011
+        command:
+            - '--gcmode=archive'
+            - '--syncmode=full'
+            - '--datadir=/data/taiko-geth'
+            - '--networkid=167011'
+            - '--port=30303'
+            - '--metrics'
+            - '--metrics.addr=0.0.0.0'
+            - '--http'
+            - '--http.addr=0.0.0.0'
+            - '--http.vhosts=*'
+            - '--http.corsdomain=*'
+            - '--ws'
+            - '--ws.addr=0.0.0.0'
+            - '--ws.origins=*'
+            - '--authrpc.addr=0.0.0.0'
+            - '--authrpc.port=8551'
+            - '--authrpc.vhosts=*'
+            - '--authrpc.jwtsecret=/jwtsecret.hex'
+            - '--allow-insecure-unlock'
+            - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
+            - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
+            - '--bootnodes=enode://a3d89e39a8054c7e9317759f1540639ecc4285f1603609a02e5093715ec1077b99f6320c11d0e3ee1ba83ee00bbdf5b158138c31b27bafc0754a6f33abc4dd74@34.172.209.74:30303'
+            - '--taiko'
+            - '--nat=extip:178.79.157.173'
+            # - '--verbosity=4'
 
-  taiko-driver:
-    container_name: taiko-driver
-    # image: us-docker.pkg.dev/evmchain/images/taiko-client:main
-    image: nethswitchboard/preconf-taiko-client:upstream
-    restart: unless-stopped
-    pull_policy: if_not_present
-    volumes:
-      - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-      - ./p2psecret.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
-    ports:
-      # P2P
-      - 9222:9222
-    networks:
-      - preconf
-    # Inherit env vars from parent process
-    env_file:
-      - .env.driver
-    depends_on:
-      - taiko-geth
-    command:
-      - 'driver'
-      - '--jwtSecret=/jwtsecret.hex'
-      - '--l2.ws=ws://taiko-geth:8546'
-      - '--l2.auth=http://taiko-geth:8551'
-      - '--preconfirmation.serverPort=8080'
-      - '--p2p.priv.path=/p2psecret.hex'
-      - '--p2p.static=/ip4/34.44.8.214/tcp/4001/p2p/16Uiu2HAm3nMrNJ9hohPVM7KCpVV4wLAKvJyEUJaij6NU7FkMcY4A'
-      - '--p2p.listen.tcp=9222'
-      - '--p2p.listen.udp=9222'
+    taiko-driver:
+        container_name: taiko-driver
+        # image: us-docker.pkg.dev/evmchain/images/taiko-client:main
+        image: nethswitchboard/preconf-taiko-client:whitelist-0.2.38
+        restart: unless-stopped
+        pull_policy: always
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
+            - ./p2psecret.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
+        ports:
+            # P2P
+            - 9222:9222
+        networks:
+            - preconf
+        # Inherit env vars from parent process
+        env_file:
+            - .env.driver
+        depends_on:
+            - taiko-geth
+        command:
+            - 'driver'
+            - '--jwtSecret=/jwtsecret.hex'
+            - '--l2.ws=ws://taiko-geth:8546'
+            - '--l2.auth=http://taiko-geth:8551'
+            - '--preconfirmation.serverPort=8080'
+            - '--p2p.priv.path=/p2psecret.hex'
+            - '--p2p.static=/ip4/34.10.209.171/tcp/4001/p2p/16Uiu2HAmKh4TDrn1LLouscKisEnYEqmA3SdSi6GmWnAVsLwbQYsE'
+            - '--p2p.static=/ip4/34.172.209.74/tcp/4001/p2p/16Uiu2HAm3nMrNJ9hohPVM7KCpVV4wLAKvJyEUJaij6NU7FkMcY4A'
+            - '--p2p.static=/ip4/35.222.16.241/tcp/4001/p2p/16Uiu2HAm7hdq2FqzRS6TH88Trbfb81HTg41HGL72zMi3wYLpV8ju'
+            - '--p2p.static=/ip4/34.10.150.124/tcp/4001/p2p/16Uiu2HAmDfcKWY9RJrgw9zXSq2WEoKqYvqZmTK66Fu6NYC5kdoab'
+            - '--p2p.listen.tcp=9222'
+            - '--p2p.listen.udp=9222'
+            # Add this to sync with the other nodes
+            - '--p2p.sync'
+            - '--p2p.checkPointSyncUrl=http://34.172.209.74:8545'
 
-  avs-node:
-    container_name: avs-node
-    image: nethswitchboard/preconf-avs-node:whitelist
-    restart: unless-stopped
-    pull_policy: if_not_present
-    volumes:
-      - ./jwtsecret.hex:/jwtsecret.hex:ro
-    networks:
-      - preconf
-    # Inherit env vars from parent process
-    env_file:
-      - .env.avs-node
+    avs-node:
+        container_name: avs-node
+        image: nethswitchboard/preconf-avs-node:whitelist-0.2.41
+        restart: unless-stopped
+        pull_policy: always
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+        networks:
+            - preconf
+        # Inherit env vars from parent process
+        env_file:
+            - .env.avs-node
+
+#   avs-node-2:
+#     container_name: avs-node-2
+#     image: nethswitchboard/preconf-avs-node:whitelist
+#     restart: unless-stopped
+#     pull_policy: always
+#     volumes:
+#       - ./jwtsecret.hex:/jwtsecret.hex:ro
+#     networks:
+#       - preconf
+#     # Inherit env vars from parent process
+#     env_file:
+#       - .env.avs-node-2
 
 volumes:
-  taiko-geth-data:
+    taiko-geth-data:
 
 
 networks:
-  preconf:
-    driver: bridge
+    preconf:
+        driver: bridge
