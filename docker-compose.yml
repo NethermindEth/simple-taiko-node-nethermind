@@ -83,6 +83,30 @@ services:
             - '--p2p.sync'
             - '--p2p.checkPointSyncUrl=http://34.172.209.74:8545'
 
+    taiko-prover-relayer:
+        container_name: taiko-prover-relayer
+        image: nethswitchboard/preconf-taiko-client:whitelist-0.2.38
+        restart: unless-stopped
+        pull_policy: always
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+        networks:
+            - preconf
+        # Inherit env vars from parent process
+        env_file:
+            - .env.prover-relayer
+        depends_on:
+            - taiko-geth
+            - taiko-driver
+        command:
+            - 'prover'
+            - '--jwtSecret=/jwtsecret.hex'
+            - '--l2.ws=ws://taiko-geth:8546'
+            - '--l2.auth=http://taiko-geth:8551'
+            - '--l1.proverPrivKey=0x0000000000000000000000000000000000000000000000000000000000000000'
+            - '--raiko.host=http://ip:8080'
+            - '--raiko.host.zkvm=http://ip:8080'
+
     avs-node:
         container_name: avs-node
         image: nethswitchboard/preconf-avs-node:whitelist-0.2.41
