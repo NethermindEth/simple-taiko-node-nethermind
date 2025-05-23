@@ -6,7 +6,7 @@ x-logging: &logging
 
 services:
   l2_execution_engine:
-    image: nethswitchboard/preconf-taiko-geth:whitelist
+    image: nethswitchboard/taiko-geth:update_preonf_genesis
     # nethswitchboard/preconf-taiko-geth:whitelist
     #
     restart: unless-stopped
@@ -54,10 +54,10 @@ services:
       - proposer
 
   taiko_client_driver:
-    image: nethswitchboard/preconf-taiko-client:whitelist
+    image: nethswitchboard/preconf-taiko-client:whitelist-0.2.66
     # nethswitchboard/preconf-taiko-client:pacaya
     #nethswitchboard/preconf-taiko-client:whitelist
-    #nethswitchboard/preconf-taiko-client:latest
+    #nethswitchboard/preconf-taiko-client:whitelist-0.2.66
     restart: unless-stopped
     # pull_policy: always
     depends_on:
@@ -82,7 +82,7 @@ services:
       - "17300:17300"
 
   taiko_client_prover_relayer:
-    image: nethswitchboard/preconf-taiko-client:latest
+    image: nethswitchboard/preconf-taiko-client:whitelist-0.2.66
     restart: unless-stopped
     # pull_policy: always
     depends_on:
@@ -103,7 +103,7 @@ services:
       - prover
 
   taiko_client_proposer:
-    image: nethswitchboard/preconf-taiko-client:latest
+    image: nethswitchboard/preconf-taiko-client:whitelist-0.2.66
     # nethswitchboard/taiko-client:debug
     restart: unless-stopped
     # pull_policy: always
