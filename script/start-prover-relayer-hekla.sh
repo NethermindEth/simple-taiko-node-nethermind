@@ -5,17 +5,14 @@ set -eou pipefail
 if [ "$ENABLE_PROVER" = "true" ]; then
     ARGS="--l1.ws ${L1_ENDPOINT_WS}
         --l2.ws ws://l2_execution_engine:8546
-        --l1.http ${L1_ENDPOINT_HTTP}
         --l2.http http://l2_execution_engine:8545
-        --taikoL1 ${TAIKO_L1_ADDRESS}
-        --taikoL2 ${TAIKO_L2_ADDRESS}
+        --taikoInbox ${TAIKO_INBOX_ADDRESS}
+        --taikoAnchor ${TAIKO_ANCHOR_ADDRESS}
         --taikoToken ${TAIKO_TOKEN_L1_ADDRESS}
         --l1.proverPrivKey ${L1_PROVER_PRIVATE_KEY}
-        --prover.capacity ${PROVER_CAPACITY}
         --raiko.host ${SGX_RAIKO_HOST}
-        --minTierFee.optimistic ${MIN_ACCEPTABLE_PROOF_FEE}
-        --minTierFee.sgx ${MIN_ACCEPTABLE_PROOF_FEE}
-        --minTierFee.sgxAndZkvm ${MIN_ACCEPTABLE_PROOF_FEE}"
+        --prover.sgx.batchSize ${SGX_BATCH_SIZE}
+        --prover.zkvm.batchSize ${ZKVM_BATCH_SIZE}"
 
     if [ -z "$SGX_RAIKO_HOST" ]; then
         echo "Error: SGX_RAIKO_HOST must be non-empty"
@@ -27,30 +24,33 @@ if [ "$ENABLE_PROVER" = "true" ]; then
         exit 1
     fi
 
-    if [ -z "$L1_ENDPOINT_HTTP" ]; then
-        echo "Error: L1_ENDPOINT_HTTP must be non-empty"
-        exit 1
-    fi
-
     if [ -z "$L1_PROVER_PRIVATE_KEY" ]; then
         echo "Error: L1_PROVER_PRIVATE_KEY must be non-empty"
         exit 1
+    fi
+
+    if [ -n "$PROVER_SET" ]; then
+        ARGS="${ARGS} --proverSet ${PROVER_SET}"
     fi
 
     if [ -n "$TOKEN_ALLOWANCE" ]; then
         ARGS="${ARGS} --prover.allowance ${TOKEN_ALLOWANCE}"
     fi
 
-    if [ -n "$MIN_ETH_BALANCE" ]; then
-        ARGS="${ARGS} --prover.minEthBalance ${MIN_ETH_BALANCE}"
-    fi
-
-    if [ -n "$MIN_TAIKO_BALANCE" ]; then
-        ARGS="${ARGS} --prover.minTaikoTokenBalance ${MIN_TAIKO_BALANCE}"
-    fi
-
     if [ "$PROVE_UNASSIGNED_BLOCKS" = "true" ]; then
         ARGS="${ARGS} --prover.proveUnassignedBlocks"
+    fi
+
+    if [ -n "$FORCE_BATCH_PROVING_INTERVAL" ]; then
+        ARGS="${ARGS} --prover.forceBatchProvingInterval ${FORCE_BATCH_PROVING_INTERVAL}"
+    fi
+
+    if [ -n "$STARTING_BATCH_ID" ]; then
+        ARGS="${ARGS} --prover.startingBatchId ${STARTING_BATCH_ID}"
+    fi
+
+    if [ -n "$LOCAL_PROPOSER_ADDRESSES" ]; then
+        ARGS="${ARGS} --prover.localProposerAddresses ${LOCAL_PROPOSER_ADDRESSES}"
     fi
 
     # TXMGR Settings
@@ -74,16 +74,16 @@ if [ "$ENABLE_PROVER" = "true" ]; then
         ARGS="${ARGS} --tx.minTipCap ${TX_MIN_TIP_CAP}"
     fi
 
-    if [ -n "$TX_NOT_IN_MEMPOOL" ]; then
-        ARGS="${ARGS} --tx.notInMempoolTimeout ${TX_NOT_IN_MEMPOOL}"
+    if [ -n "$TX_NOT_IN_MEMPOOL_TIMEOUT" ]; then
+        ARGS="${ARGS} --tx.notInMempoolTimeout ${TX_NOT_IN_MEMPOOL_TIMEOUT}"
     fi
 
     if [ -n "$TX_NUM_CONFIRMATIONS" ]; then
         ARGS="${ARGS} --tx.numConfirmations ${TX_NUM_CONFIRMATIONS}"
     fi
 
-    if [ -n "$TX_RECEIPT_QUERY" ]; then
-        ARGS="${ARGS} --tx.receiptQueryInterval ${TX_RECEIPT_QUERY}"
+    if [ -n "$TX_RECEIPT_QUERY_INTERVAL" ]; then
+        ARGS="${ARGS} --tx.receiptQueryInterval ${TX_RECEIPT_QUERY_INTERVAL}"
     fi
 
     if [ -n "$TX_RESUBMISSION" ]; then
@@ -96,6 +96,10 @@ if [ "$ENABLE_PROVER" = "true" ]; then
 
     if [ -n "$TX_SEND_TIMEOUT" ]; then
         ARGS="${ARGS} --tx.sendTimeout ${TX_SEND_TIMEOUT}"
+    fi
+
+    if [ -n "$PROOF_POLLING_INTERVAL" ]; then
+            ARGS="${ARGS} --prover.proofPollingInterval ${PROOF_POLLING_INTERVAL}"
     fi
 
     exec taiko-client prover ${ARGS}

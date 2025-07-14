@@ -12,9 +12,8 @@ if [ "$ENABLE_PROPOSER" = "true" ]; then
         --jwtSecret /data/taiko-geth/geth/jwtsecret
         --l1.proposerPrivKey ${L1_PROPOSER_PRIVATE_KEY}
         --l2.suggestedFeeRecipient ${L2_SUGGESTED_FEE_RECIPIENT}
-        --proverEndpoints ${PROVER_ENDPOINTS}
-        --tierFee.optimistic ${BLOCK_PROPOSAL_FEE}
-        --tierFee.sgx ${BLOCK_PROPOSAL_FEE}"
+        --taikoWrapper ${TAIKO_WRAPPER}
+        --forcedInclusionStore ${FORCED_INCLUSION_STORE}"
 
     if [ -z "$L1_ENDPOINT_WS" ]; then
         echo "Error: L1_ENDPOINT_WS must be non-empty"
@@ -26,9 +25,8 @@ if [ "$ENABLE_PROPOSER" = "true" ]; then
         exit 1
     fi
 
-    if [ -z "$PROVER_ENDPOINTS" ]; then
-        echo "Warning: PROVER_ENDPOINTS must be non-empty"
-        exit 1
+    if [ -n "$EPOCH_MIN_TIP" ]; then
+        ARGS="${ARGS} --epoch.minTip ${EPOCH_MIN_TIP}"
     fi
 
     if [ -n "$PROVER_SET" ]; then
@@ -40,16 +38,16 @@ if [ "$ENABLE_PROPOSER" = "true" ]; then
         ARGS="${ARGS} --txPool.locals ${TXPOOL_LOCALS}"
     fi
 
-    if [ -n "$MAX_TIER_FEE_BUMPS" ]; then
-        ARGS="${ARGS} --tierFee.maxPriceBumps ${MAX_TIER_FEE_BUMPS}"
-    fi
-
-    if [ -n "$BLOCK_BUILDER_TIP" ]; then
-        ARGS="${ARGS} --l1.blockBuilderTip ${BLOCK_BUILDER_TIP}"
-    fi
-
     if [ "$BLOB_ALLOWED" == "true" ]; then
         ARGS="${ARGS} --l1.blobAllowed"
+    fi
+
+    if [ "$FALLBACK_TO_CALLDATA" == "true" ]; then
+        ARGS="${ARGS} --l1.fallbackToCalldata"
+    fi
+
+    if [ "$REVERT_PROTECTION" == "true" ]; then
+        ARGS="${ARGS} --l1.revertProtection"
     fi
 
     # TXMGR Settings
@@ -73,16 +71,16 @@ if [ "$ENABLE_PROPOSER" = "true" ]; then
         ARGS="${ARGS} --tx.minTipCap ${TX_MIN_TIP_CAP}"
     fi
 
-    if [ -n "$TX_NOT_IN_MEMPOOL" ]; then
-        ARGS="${ARGS} --tx.notInMempoolTimeout ${TX_NOT_IN_MEMPOOL}"
+    if [ -n "$TX_NOT_IN_MEMPOOL_TIMEOUT" ]; then
+        ARGS="${ARGS} --tx.notInMempoolTimeout ${TX_NOT_IN_MEMPOOL_TIMEOUT}"
     fi
 
     if [ -n "$TX_NUM_CONFIRMATIONS" ]; then
         ARGS="${ARGS} --tx.numConfirmations ${TX_NUM_CONFIRMATIONS}"
     fi
 
-    if [ -n "$TX_RECEIPT_QUERY" ]; then
-        ARGS="${ARGS} --tx.receiptQueryInterval ${TX_RECEIPT_QUERY}"
+    if [ -n "$TX_RECEIPT_QUERY_INTERVAL" ]; then
+        ARGS="${ARGS} --tx.receiptQueryInterval ${TX_RECEIPT_QUERY_INTERVAL}"
     fi
 
     if [ -n "$TX_RESUBMISSION" ]; then
