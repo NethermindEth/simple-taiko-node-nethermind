@@ -68,6 +68,19 @@ services:
       - l2_execution_engine
       - prover
 
+  taiko_preconfer:
+    image: nethswitchboard/preconf-avs-node:whitelist-0.2.99
+    restart: unless-stopped
+    pull_policy: always
+    depends_on:
+      - l2_execution_engine
+    env_file:
+      - .env
+    volumes:
+      - l2_execution_engine_data:/data/taiko-geth
+    profiles:
+      - preconf
+
   taiko_client_prover_relayer:
     image: us-docker.pkg.dev/evmchain/images/taiko-client:taiko-alethia-client-v1.6.2
     restart: unless-stopped

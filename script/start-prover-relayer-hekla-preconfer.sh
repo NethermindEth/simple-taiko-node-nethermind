@@ -12,7 +12,9 @@ if [ "$ENABLE_PROVER" = "true" ]; then
         --l1.proverPrivKey ${L1_PROVER_PRIVATE_KEY}
         --raiko.host ${SGX_RAIKO_HOST}
         --prover.sgx.batchSize ${SGX_BATCH_SIZE}
-        --prover.zkvm.batchSize ${ZKVM_BATCH_SIZE}"
+        --prover.zkvm.batchSize ${ZKVM_BATCH_SIZE}
+        --metrics true
+        --verbosity 4"
 
     if [ -z "$SGX_RAIKO_HOST" ]; then
         echo "Error: SGX_RAIKO_HOST must be non-empty"
@@ -29,17 +31,17 @@ if [ "$ENABLE_PROVER" = "true" ]; then
         exit 1
     fi
 
-    if [ -n "$PROVER_SET" ]; then
-        ARGS="${ARGS} --proverSet ${PROVER_SET}"
-    fi
+    # if [ -n "$PROVER_SET" ]; then
+    #     ARGS="${ARGS} --proverSet ${PROVER_SET}"
+    # fi
 
     if [ -n "$TOKEN_ALLOWANCE" ]; then
         ARGS="${ARGS} --prover.allowance ${TOKEN_ALLOWANCE}"
     fi
 
-    if [ "$PROVE_UNASSIGNED_BLOCKS" = "true" ]; then
-        ARGS="${ARGS} --prover.proveUnassignedBlocks"
-    fi
+    # if [ "$PROVE_UNASSIGNED_BLOCKS" = "true" ]; then
+    #     ARGS="${ARGS} --prover.proveUnassignedBlocks"
+    # fi
 
     if [ -n "$FORCE_BATCH_PROVING_INTERVAL" ]; then
         ARGS="${ARGS} --prover.forceBatchProvingInterval ${FORCE_BATCH_PROVING_INTERVAL}"

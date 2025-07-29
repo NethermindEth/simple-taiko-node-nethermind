@@ -1,5 +1,238 @@
 # Changelog
 
+## [1.17.3](https://github.com/taikoxyz/simple-taiko-node/compare/v1.17.2...v1.17.3) (2025-07-09)
+
+
+### Chores
+
+* **docker:** bump client hotfix version ([#397](https://github.com/taikoxyz/simple-taiko-node/issues/397)) ([b420668](https://github.com/taikoxyz/simple-taiko-node/commit/b420668d0226e70db9a7822e79d891a44256916a))
+
+## [1.17.2](https://github.com/taikoxyz/simple-taiko-node/compare/v1.17.1...v1.17.2) (2025-06-06)
+
+
+### Chores
+
+* **docker:** update images and remove leftover proposer profile ([#394](https://github.com/taikoxyz/simple-taiko-node/issues/394)) ([fc89a0d](https://github.com/taikoxyz/simple-taiko-node/commit/fc89a0dad18f4916dbb30c8b2ada00e56e2c1814))
+
+## [1.17.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.17.0...v1.17.1) (2025-06-05)
+
+
+### Chores
+
+* **docker:** remove hekla proposer profile ([#392](https://github.com/taikoxyz/simple-taiko-node/issues/392)) ([07a1da9](https://github.com/taikoxyz/simple-taiko-node/commit/07a1da9143955e4b633e1bae31104da19fe3c9db))
+
+## [1.17.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.16.1...v1.17.0) (2025-06-03)
+
+
+### Features
+
+* **docker:** update flags/script for preconfs ([#389](https://github.com/taikoxyz/simple-taiko-node/issues/389)) ([61886f2](https://github.com/taikoxyz/simple-taiko-node/commit/61886f2ed94fd2d69c0a6d3aa8e99c37aa0b500c))
+
+## [1.16.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.16.0...v1.16.1) (2025-05-21)
+
+
+### Bug Fixes
+
+* **docker:** hotfix image for mainnet ([#387](https://github.com/taikoxyz/simple-taiko-node/issues/387)) ([8358fae](https://github.com/taikoxyz/simple-taiko-node/commit/8358fae4cc417e6d6294e4bf84e4be228d967d7b))
+
+## [1.16.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.15.0...v1.16.0) (2025-05-16)
+
+
+### Features
+
+* **docker:** updates for Mainnet `Pacaya` fork ([#385](https://github.com/taikoxyz/simple-taiko-node/issues/385)) ([171cec3](https://github.com/taikoxyz/simple-taiko-node/commit/171cec3afacbb3a923e5e1be8e684d7d9b0fe5d5))
+
+## [1.15.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.14.0...v1.15.0) (2025-04-30)
+
+
+### Features
+
+* **docker:** update mainnet tags for Pectra fork ([#383](https://github.com/taikoxyz/simple-taiko-node/issues/383)) ([6821768](https://github.com/taikoxyz/simple-taiko-node/commit/6821768e2ee958b905bb567854edea6b174721f3))
+
+## [1.14.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.13.1...v1.14.0) (2025-04-11)
+
+
+### Features
+
+* **docker:** bump Hekla tags for `sgx_geth` ([#381](https://github.com/taikoxyz/simple-taiko-node/issues/381)) ([4ec6ccf](https://github.com/taikoxyz/simple-taiko-node/commit/4ec6ccfdf6fb276a08ae415ce6b7326a3adeb4ed))
+
+## [1.13.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.13.0...v1.13.1) (2025-03-28)
+
+
+### Bug Fixes
+
+* **hekla:** bump Hekla Pacaya tags ([#378](https://github.com/taikoxyz/simple-taiko-node/issues/378)) ([52a4ba2](https://github.com/taikoxyz/simple-taiko-node/commit/52a4ba2fdacb660feb8877b03e151739f57ba04a))
+
+## [1.13.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.12.0...v1.13.0) (2025-03-27)
+
+
+### Features
+
+* **docker:** bump Hekla tags ([#376](https://github.com/taikoxyz/simple-taiko-node/issues/376)) ([62fd167](https://github.com/taikoxyz/simple-taiko-node/commit/62fd167afd462a2175d8d614d9ff3d9367d33528))
+
+## [1.12.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.11.0...v1.12.0) (2025-03-24)
+
+
+### Features
+
+* **repo:** update Hekla image tags for Pacaya fork ([#374](https://github.com/taikoxyz/simple-taiko-node/issues/374)) ([d1182fb](https://github.com/taikoxyz/simple-taiko-node/commit/d1182fbe148150350b5cef8cea59f0fc9e27ebcc))
+
+## [1.11.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.10.3...v1.11.0) (2025-03-24)
+
+
+### Features
+
+* **hekla:** bump client tags ([#373](https://github.com/taikoxyz/simple-taiko-node/issues/373)) ([451dab3](https://github.com/taikoxyz/simple-taiko-node/commit/451dab300b85f942bd58dc1aaf6fc290cd287332))
+* **hekla:** update tags for Hekla ([#371](https://github.com/taikoxyz/simple-taiko-node/issues/371)) ([f2a4af7](https://github.com/taikoxyz/simple-taiko-node/commit/f2a4af77a4b960ed1046aad1d53aed23717a8043))
+* **repo:** update Hekla image tags for Pacaya fork ([#369](https://github.com/taikoxyz/simple-taiko-node/issues/369)) ([0f1e3b1](https://github.com/taikoxyz/simple-taiko-node/commit/0f1e3b1bee713735e9f44469913fa6645f09de82))
+
+
+### Chores
+
+* **proposer:** fix env var name ([#372](https://github.com/taikoxyz/simple-taiko-node/issues/372)) ([cea04e4](https://github.com/taikoxyz/simple-taiko-node/commit/cea04e4a336b3da7f6edf5dd341e442a5a0a05ca))
+
+## [1.10.3](https://github.com/taikoxyz/simple-taiko-node/compare/v1.10.2...v1.10.3) (2025-02-25)
+
+
+### Chores
+
+* **docker:** update Hekla `taiko-client` tags ([#367](https://github.com/taikoxyz/simple-taiko-node/issues/367)) ([a4ac24f](https://github.com/taikoxyz/simple-taiko-node/commit/a4ac24ffb273e0458203c54e14859684a688c996))
+
+## [1.10.2](https://github.com/taikoxyz/simple-taiko-node/compare/v1.10.1...v1.10.2) (2025-02-14)
+
+
+### Bug Fixes
+
+* **prover:** remove deprecated flag ([#366](https://github.com/taikoxyz/simple-taiko-node/issues/366)) ([ce0354f](https://github.com/taikoxyz/simple-taiko-node/commit/ce0354f7b22b06d8cc30589f2887ddd7b66db3e0))
+* **repo:** fix link in readme ([#364](https://github.com/taikoxyz/simple-taiko-node/issues/364)) ([f6871ae](https://github.com/taikoxyz/simple-taiko-node/commit/f6871aeebd518999949dd74e848efa526fa24f45))
+
+## [1.10.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.10.0...v1.10.1) (2025-02-06)
+
+
+### Bug Fixes
+
+* **driver:** fix image tag ([#362](https://github.com/taikoxyz/simple-taiko-node/issues/362)) ([8671583](https://github.com/taikoxyz/simple-taiko-node/commit/86715839fcb38e7338165b5f43298b842861239d))
+
+## [1.10.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.9.1...v1.10.0) (2025-02-04)
+
+
+### Features
+
+* **repo:** bump client version ([#360](https://github.com/taikoxyz/simple-taiko-node/issues/360)) ([317b66f](https://github.com/taikoxyz/simple-taiko-node/commit/317b66facb1dbbcf544842e10434e50f1cab0d13))
+
+## [1.9.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.9.0...v1.9.1) (2025-01-31)
+
+
+### Bug Fixes
+
+* **prover,proposer:** script fixes ([#358](https://github.com/taikoxyz/simple-taiko-node/issues/358)) ([6d06a90](https://github.com/taikoxyz/simple-taiko-node/commit/6d06a9096e0ecdb4b169c18b3c690a7b71615bea))
+
+
+### Chores
+
+* **env:** add disclaimer for revert protection ([#356](https://github.com/taikoxyz/simple-taiko-node/issues/356)) ([5da07b3](https://github.com/taikoxyz/simple-taiko-node/commit/5da07b387b72c4ec62a0157187fa2339b842c97d))
+* **l2ee:** upgrade geth version ([#359](https://github.com/taikoxyz/simple-taiko-node/issues/359)) ([7fd1b29](https://github.com/taikoxyz/simple-taiko-node/commit/7fd1b2913730828e827347b9bbd6fd90abd7d2b0))
+
+## [1.9.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.8.2...v1.9.0) (2025-01-20)
+
+
+### Features
+
+* **driver,prover,proposer:** bump  client version ([#353](https://github.com/taikoxyz/simple-taiko-node/issues/353)) ([02fa9b6](https://github.com/taikoxyz/simple-taiko-node/commit/02fa9b6aafde655a5db56b656e7d60a9a85bdd88))
+
+## [1.8.2](https://github.com/taikoxyz/simple-taiko-node/compare/v1.8.1...v1.8.2) (2025-01-15)
+
+
+### Chores
+
+* **env:** update `.env.sample.hekla` ([4bd0a2a](https://github.com/taikoxyz/simple-taiko-node/commit/4bd0a2a4cc1ff818fdbf75a8e4614cfdf77c5632))
+* **prover,proposer,driver:** upgrade client version to `0.43.0` on Hekla ([#351](https://github.com/taikoxyz/simple-taiko-node/issues/351)) ([ff47aaf](https://github.com/taikoxyz/simple-taiko-node/commit/ff47aafee80e06d674e3bcb977bdfd5f45bd1e7d))
+
+## [1.8.1](https://github.com/taikoxyz/simple-taiko-node/compare/v1.8.0...v1.8.1) (2024-10-24)
+
+
+### Bug Fixes
+
+* **proposer,driver,prover:** bump version ([#343](https://github.com/taikoxyz/simple-taiko-node/issues/343)) ([254fb8e](https://github.com/taikoxyz/simple-taiko-node/commit/254fb8ef10bec85ec467dada37dc3b8b9968a003))
+
+## [1.8.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.7.0...v1.8.0) (2024-10-23)
+
+
+### Features
+
+* **env:** add TxMgr flag annotations ([#334](https://github.com/taikoxyz/simple-taiko-node/issues/334)) ([dd9322f](https://github.com/taikoxyz/simple-taiko-node/commit/dd9322f10f4d1fa7bc4e46daed9a5accb0581486))
+* **hekla:** bump Hekla client tag ([#337](https://github.com/taikoxyz/simple-taiko-node/issues/337)) ([b575679](https://github.com/taikoxyz/simple-taiko-node/commit/b575679af1262f72426ada160596b586cf3cff99))
+* **mainnet:** bump client version ([#336](https://github.com/taikoxyz/simple-taiko-node/issues/336)) ([9166881](https://github.com/taikoxyz/simple-taiko-node/commit/9166881fb0e9bb6025910f861143cc0720eba76e))
+* **mainnet:** bump version ([#341](https://github.com/taikoxyz/simple-taiko-node/issues/341)) ([ec5868f](https://github.com/taikoxyz/simple-taiko-node/commit/ec5868f1f2ad6585193148b48f5ae2a32cdc9055))
+* update tags for Hekla / mainnet ([#340](https://github.com/taikoxyz/simple-taiko-node/issues/340)) ([3884f86](https://github.com/taikoxyz/simple-taiko-node/commit/3884f860aa33d94a4c24450388e8634f96d243af))
+
+
+### Chores
+
+* **docker:** bump Hekla tags ([#338](https://github.com/taikoxyz/simple-taiko-node/issues/338)) ([6abe049](https://github.com/taikoxyz/simple-taiko-node/commit/6abe0490faae82aa6783df41ad668d42f0fc74a2))
+
+## [1.7.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.6.0...v1.7.0) (2024-09-12)
+
+
+### Features
+
+* **env:** update Hekla && mainnet bootnodes ([#332](https://github.com/taikoxyz/simple-taiko-node/issues/332)) ([0955f43](https://github.com/taikoxyz/simple-taiko-node/commit/0955f43191fa62175d89a911b6d3085424b15d85))
+
+## [1.6.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.5.0...v1.6.0) (2024-09-12)
+
+
+### Features
+
+* **prover,proposer,driver:** bump  client version ([#330](https://github.com/taikoxyz/simple-taiko-node/issues/330)) ([ce53ce2](https://github.com/taikoxyz/simple-taiko-node/commit/ce53ce22a63069adf5c84c01769117127b7e5403))
+
+## [1.5.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.4.0...v1.5.0) (2024-09-11)
+
+
+### Features
+
+* **hekla:** bump client and l2ee version ([#326](https://github.com/taikoxyz/simple-taiko-node/issues/326)) ([2f6c06e](https://github.com/taikoxyz/simple-taiko-node/commit/2f6c06e0384f9bc7127795146d0d026558a4020e))
+* **prover,proposer,driver:** bump l2ee and driver versions ([#329](https://github.com/taikoxyz/simple-taiko-node/issues/329)) ([6cfd9f1](https://github.com/taikoxyz/simple-taiko-node/commit/6cfd9f11197500b304038e8acd10ac4008e9379f))
+* **prover:** remove unnecesary env in hekla .env.sample and fix ([#325](https://github.com/taikoxyz/simple-taiko-node/issues/325)) ([0db06a8](https://github.com/taikoxyz/simple-taiko-node/commit/0db06a8835bd7ca720865c709ee0e711c3350cb2))
+* **prover:** update version of prover in hekla ([#323](https://github.com/taikoxyz/simple-taiko-node/issues/323)) ([8ecd3bc](https://github.com/taikoxyz/simple-taiko-node/commit/8ecd3bc7f9f9591fe448e044f7a48ca85a45d28c))
+
+
+### Chores
+
+* **hekla:** bump client & taiko-geth image version ([#327](https://github.com/taikoxyz/simple-taiko-node/issues/327)) ([09d77eb](https://github.com/taikoxyz/simple-taiko-node/commit/09d77ebc61506cf6fb67fd60b7ffba4325ee8c6f))
+* **hekla:** bump client & taiko-geth image version ([#328](https://github.com/taikoxyz/simple-taiko-node/issues/328)) ([807926f](https://github.com/taikoxyz/simple-taiko-node/commit/807926fb9f0c27a9dbc756d345ceb65a81fcfdf0))
+
+## [1.4.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.3.0...v1.4.0) (2024-07-18)
+
+
+### Features
+
+* **proposer:** support epoch.minTip ([#316](https://github.com/taikoxyz/simple-taiko-node/issues/316)) ([e8c1f9a](https://github.com/taikoxyz/simple-taiko-node/commit/e8c1f9a836865336149839b31e4f4529d13290c9))
+* **repo:** add editorconfig ([#320](https://github.com/taikoxyz/simple-taiko-node/issues/320)) ([bc5a9d0](https://github.com/taikoxyz/simple-taiko-node/commit/bc5a9d00d6aad03d2abc21de084fdf442781edab))
+
+
+### Bug Fixes
+
+* double quotation ([#312](https://github.com/taikoxyz/simple-taiko-node/issues/312)) ([8d5be17](https://github.com/taikoxyz/simple-taiko-node/commit/8d5be172de0b49f75cf15b7e36a2c6f3ae7f9536))
+
+
+### Chores
+
+* **docker:** update geth image ([#321](https://github.com/taikoxyz/simple-taiko-node/issues/321)) ([246dbb3](https://github.com/taikoxyz/simple-taiko-node/commit/246dbb3fd93e35a76d19eb985a6225b2448ce1a1))
+
+
+### Workflow
+
+* **repo:** improving repo workflows/renaming ([#317](https://github.com/taikoxyz/simple-taiko-node/issues/317)) ([589456b](https://github.com/taikoxyz/simple-taiko-node/commit/589456b372378558804ed1ddd68ec0a9ab0c085d))
+
+## [1.3.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.2.0...v1.3.0) (2024-07-08)
+
+
+### Features
+
+* **proposer:** remove unused `BLOCK_BUILDER_TIP` ([#309](https://github.com/taikoxyz/simple-taiko-node/issues/309)) ([f11e6be](https://github.com/taikoxyz/simple-taiko-node/commit/f11e6be27c8da1662154a0b06430a86f11ab6f1f))
+* **proposer:** rm tier fee ([#310](https://github.com/taikoxyz/simple-taiko-node/issues/310)) ([aaf2ce0](https://github.com/taikoxyz/simple-taiko-node/commit/aaf2ce0665f3de8d69947d44ef8c7fa1521ee9b0))
+* remove unused configs ([#305](https://github.com/taikoxyz/simple-taiko-node/issues/305)) ([073bf24](https://github.com/taikoxyz/simple-taiko-node/commit/073bf24be6557fcc80968b3ff24bd94de17f91c7))
+
 ## [1.2.0](https://github.com/taikoxyz/simple-taiko-node/compare/v1.1.0...v1.2.0) (2024-07-01)
 
 
