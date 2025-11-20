@@ -80,8 +80,8 @@ if [ $((OPERATOR_COUNT)) -lt 2 ]; then
 
     echo
     echo "Adding operator to whitelist using preconfirmation whitelist address $PRECONFIRMATION_WHITELIST"
-    cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_1 $OPERATOR_ADDRESS_1 $PRECONFIRMATION_WHITELIST --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
-    cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_2 $OPERATOR_ADDRESS_2 $PRECONFIRMATION_WHITELIST --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
+    cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_1 $OPERATOR_ADDRESS_1 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
+    cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_2 $OPERATOR_ADDRESS_2 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
 
     echo "Removing default operator"
     cast send $PRECONFIRMATION_WHITELIST "removeOperator(address, bool)" 0x8943545177806ED17B9F23F0a21ee5948eCaa776 true --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
