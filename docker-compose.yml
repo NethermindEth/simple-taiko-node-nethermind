@@ -36,7 +36,6 @@ services:
     fork-switch:
         container_name: fork-switch
         image: nethswitchboard/pacaya-shasta-transition
-        pull_policy: always
         networks:
             - preconf
         env_file:
@@ -49,7 +48,6 @@ services:
         container_name: taiko-geth-1
         image: ${TAIKO_GETH_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
@@ -115,7 +113,6 @@ services:
         container_name: taiko-driver-1
         image: ${TAIKO_CLIENT_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
@@ -170,7 +167,6 @@ services:
         container_name: catalyst-node-1
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
         # ports:
@@ -206,7 +202,6 @@ services:
         container_name: web3signer_l1
         image: nethswitchboard/web3signer_eip_4844:2.4
         restart: unless-stopped
-        pull_policy: always
         volumes:
         - ./docker/web3signer_config:/config
         networks:
@@ -221,7 +216,6 @@ services:
         container_name: web3signer_l2
         image: nethswitchboard/web3signer_eip_4844:2.4
         restart: unless-stopped
-        pull_policy: always
         volumes:
         - ./docker/web3signer_config:/config
         networks:
@@ -241,7 +235,6 @@ services:
         container_name: taiko-geth-2
         image: ${TAIKO_GETH_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
@@ -307,7 +300,6 @@ services:
         container_name: taiko-driver-2
         image: ${TAIKO_CLIENT_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
@@ -359,7 +351,6 @@ services:
         container_name: catalyst-node-2
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: always
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
         # ports:
