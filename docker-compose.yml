@@ -19,7 +19,7 @@ services:
     
     shasta-deployer:
         container_name: shasta-deployer
-        image: nethermind/catalyst-taiko-protocol:shasta
+        image: nethswitchboard/preconf-taiko-protocol:shasta
         volumes:
             - ./script:/deployer:rw
             - ./deployments:/deployments:rw

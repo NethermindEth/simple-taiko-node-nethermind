@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Source validators for logging functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/validators.sh" ]; then
+    source "$SCRIPT_DIR/lib/validators.sh"
+else
+    # Fallback if validators.sh is not available
+    log_info() { echo -e "\033[0;34m[INFO]\033[0m $1"; }
+fi
+
 # Function to transfer funds and set up operator
 # Usage: setup_operator "0x1234..." "0x5678..." "0x9abc..."
 # Args: $1 = operator_address, $2 = operator_private_key, $3 = contract_owner_private_key
@@ -24,7 +33,7 @@ setup_operator() {
   fi
 
   echo
-  echo "Setting up operator: $OPERATOR_ADDRESS"
+  log_info "Setting up operator: $OPERATOR_ADDRESS"
 
   # Check and transfer TAIKO tokens if needed
   OPERATOR_TOKENS=$(cast call $TAIKO_TOKEN "balanceOf(address)(uint256)" $OPERATOR_ADDRESS --rpc-url $L1_ENDPOINT_WS | cut -d' ' -f1)
@@ -68,7 +77,7 @@ echo Taiko balance: $(cast call $TAIKO_TOKEN "balanceOf(address)(uint256)" $TAIK
 
 # Call the setup_operator function
 setup_operator "$OPERATOR_ADDRESS_1" "$OPERATOR_1_PRIVATE_KEY" "$CONTRACT_OWNER_PRIVATE_KEY"
-# setup_operator "$OPERATOR_ADDRESS_2" "$OPERATOR_2_PRIVATE_KEY" "$CONTRACT_OWNER_PRIVATE_KEY"
+setup_operator "$OPERATOR_ADDRESS_2" "$OPERATOR_2_PRIVATE_KEY" "$CONTRACT_OWNER_PRIVATE_KEY"
 
 OPERATOR_COUNT=$(cast call $PRECONFIRMATION_WHITELIST "operatorCount()" --rpc-url $L1_ENDPOINT_WS)
 echo Number of operators: $OPERATOR_COUNT
