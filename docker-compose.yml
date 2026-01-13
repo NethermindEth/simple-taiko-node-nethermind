@@ -1,5 +1,39 @@
 # This is the docker-compose file with L2 for the Kurtosis preconfirm devnet package.
 services:
+    pacaya-deployer:
+        container_name: pacaya-deployer
+        image: nethermind/catalyst-taiko-protocol:taiko-alethia-protocol-v2.3.1-new
+        volumes:
+            - ./script:/deployer:rw
+            - ./deployments:/deployments:rw
+        env_file:
+            - .env
+        command:
+            - /deployer/pacaya-deployer.sh
+        networks:
+            - preconf
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        profiles:
+            - deploy
+    
+    shasta-deployer:
+        container_name: shasta-deployer
+        image: nethermind/catalyst-taiko-protocol:shasta
+        volumes:
+            - ./script:/deployer:rw
+            - ./deployments:/deployments:rw
+        env_file:
+            - .env
+        command:
+            - /deployer/shasta-deployer.sh
+        networks:
+            - preconf
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        profiles:
+            - deploy
+
     transfer-funds:
         container_name: transfer-funds
         image: ghcr.io/foundry-rs/foundry:stable
@@ -20,6 +54,8 @@ services:
             - preconf
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        profiles:
+            - stack
 
     p2p-bootnode:
         container_name: p2p-bootnode
@@ -32,11 +68,14 @@ services:
             - preconf
         volumes:
             - bootnode-data:/tmp:rw
+        profiles:
+            - stack
 
     fork-switch:
         container_name: fork-switch
-        image: nethswitchboard/pacaya-shasta-transition
-        pull_policy: always
+        build:
+            context: ./shasta-pacay-transition
+            dockerfile: Dockerfile
         networks:
             - preconf
         env_file:
@@ -44,6 +83,8 @@ services:
             - .env.stack-1
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        profiles:
+            - stack
 
     taiko-geth-1:
         container_name: taiko-geth-1
@@ -110,6 +151,8 @@ services:
             - '--config=/data/taiko-geth/geth/config.toml'
             - '--nodekey=/data/taiko-geth/geth/nodekey'
             - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+        profiles:
+            - stack
 
     taiko-driver-1:
         container_name: taiko-driver-1
@@ -164,7 +207,8 @@ services:
                   --shastaInbox=$${SHASTA_INBOX} \
                   --p2p.advertise.ip=taiko-driver-1 \
                   --p2p.bootnodes=$$ENR
-
+        profiles:
+            - stack
 
     catalyst-node-1:
         container_name: catalyst-node-1
@@ -201,10 +245,12 @@ services:
                 condition: service_started
             web3signer_l2:
                 condition: service_started
+        profiles:
+            - stack
 
     web3signer_l1:
         container_name: web3signer_l1
-        image: nethswitchboard/web3signer_eip_4844:2.4
+        image: consensys/web3signer:25.11.0
         restart: unless-stopped
         pull_policy: always
         volumes:
@@ -216,10 +262,12 @@ services:
         - '--http-host-allowlist=*'
         - 'eth1'
         - '--chain-id=${L1_CHAIN_ID}'
+        profiles:
+            - stack
 
     web3signer_l2:
         container_name: web3signer_l2
-        image: nethswitchboard/web3signer_eip_4844:2.4
+        image: consensys/web3signer:25.11.0
         restart: unless-stopped
         pull_policy: always
         volumes:
@@ -231,7 +279,8 @@ services:
         - '--http-host-allowlist=*'
         - 'eth1'
         - '--chain-id=${L2_CHAIN_ID}'
-
+        profiles:
+            - stack
 
 
 
@@ -302,6 +351,8 @@ services:
             - '--config=/data/taiko-geth/geth/config.toml'
             - '--nodekey=/data/taiko-geth/geth/nodekey'
             - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+        profiles:
+            - stack
 
     taiko-driver-2:
         container_name: taiko-driver-2
@@ -354,6 +405,8 @@ services:
                   --metrics=true \
                   --verbosity=4 \
                   --p2p.bootnodes=$$ENR
+        profiles:
+            - stack
 
     catalyst-node-2:
         container_name: catalyst-node-2
@@ -386,6 +439,8 @@ services:
                 condition: service_started
             taiko-driver-2:
                 condition: service_started
+        profiles:
+            - stack
 
 volumes:
     taiko-geth-data-1:
