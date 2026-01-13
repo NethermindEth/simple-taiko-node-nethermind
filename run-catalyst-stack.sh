@@ -1,5 +1,7 @@
 set -e
 
+git submodule update --init
+
 # Helper function to update environment variables in .env file
 update_env_var() {
     local env_file="$1"
