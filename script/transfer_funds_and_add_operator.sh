@@ -1,13 +1,7 @@
 #!/bin/bash
 
 # Source validators for logging functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/lib/validators.sh" ]; then
-    source "$SCRIPT_DIR/lib/validators.sh"
-else
-    # Fallback if validators.sh is not available
-    log_info() { echo -e "\033[0;34m[INFO]\033[0m $1"; }
-fi
+source ./lib/validators.sh
 
 # Function to transfer funds and set up operator
 # Usage: setup_operator "0x1234..." "0x5678..." "0x9abc..."
@@ -80,23 +74,18 @@ setup_operator "$OPERATOR_ADDRESS_1" "$OPERATOR_1_PRIVATE_KEY" "$CONTRACT_OWNER_
 setup_operator "$OPERATOR_ADDRESS_2" "$OPERATOR_2_PRIVATE_KEY" "$CONTRACT_OWNER_PRIVATE_KEY"
 
 OPERATOR_COUNT=$(cast call $PRECONFIRMATION_WHITELIST "operatorCount()" --rpc-url $L1_ENDPOINT_WS)
-echo Number of operators: $OPERATOR_COUNT
+log_info "Number of operators: $OPERATOR_COUNT"
 if [ $((OPERATOR_COUNT)) -lt 2 ]; then
-    OPERATOR_CHANGE_DELAY=0
-    echo
-    echo "Setting operator change delay to $OPERATOR_CHANGE_DELAY"
-    cast send $PRECONFIRMATION_WHITELIST "setOperatorChangeDelay(uint8)" $OPERATOR_CHANGE_DELAY --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
-
     echo
     echo "Adding operator to whitelist using preconfirmation whitelist address $PRECONFIRMATION_WHITELIST"
     cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_1 $OPERATOR_ADDRESS_1 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
     cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_2 $OPERATOR_ADDRESS_2 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
 
     echo "Removing default operator"
-    cast send $PRECONFIRMATION_WHITELIST "removeOperator(address, bool)" 0x8943545177806ED17B9F23F0a21ee5948eCaa776 true --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
+    cast send $PRECONFIRMATION_WHITELIST "removeOperatorByAddress(address)" 0x8943545177806ED17B9F23F0a21ee5948eCaa776 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
 
     echo
     echo "Checking number of operators again"
     OPERATOR_COUNT=$(cast call $PRECONFIRMATION_WHITELIST "operatorCount()" --rpc-url $L1_ENDPOINT_WS)
-    echo Number of operators: $OPERATOR_COUNT
+    log_info "Number of operators: $OPERATOR_COUNT"
 fi

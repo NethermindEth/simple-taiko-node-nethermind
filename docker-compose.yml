@@ -39,13 +39,13 @@ services:
         image: ghcr.io/foundry-rs/foundry:stable
         restart: "no"
         volumes:
-            - ./script/transfer_funds_and_add_operator.sh:/transfer_funds_and_add_operator.sh:rw
+            - ./script:/script:ro
             - ./.env:/envfile:ro
         working_dir: /tmp
         entrypoint: ["/bin/sh", "-c"]
         command:
             - |
-                cp /transfer_funds_and_add_operator.sh ./transfer_funds_and_add_operator.sh && \
+                cp -r /script ./script && cd ./script \
                 chmod +x ./transfer_funds_and_add_operator.sh && \
                 ./transfer_funds_and_add_operator.sh
         env_file:
