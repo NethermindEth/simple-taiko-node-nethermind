@@ -2,7 +2,7 @@
 services:
     pacaya-deployer:
         container_name: pacaya-deployer
-        image: nethermind/catalyst-taiko-protocol:taiko-alethia-protocol-v2.3.1-new
+        image: ${TAIKO_PROTOCOL_PACAYA_IMAGE}
         volumes:
             - ./script:/deployer:rw
             - ./deployments:/deployments:rw
@@ -19,7 +19,7 @@ services:
     
     shasta-deployer:
         container_name: shasta-deployer
-        image: nethswitchboard/preconf-taiko-protocol:shasta
+        image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
         volumes:
             - ./script:/deployer:rw
             - ./deployments:/deployments:rw
