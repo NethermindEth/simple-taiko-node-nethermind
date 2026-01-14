@@ -64,5 +64,5 @@ fi
 
 # Run docker-compose up -d
 echo "Running: docker-compose up -d"
-docker-compose up -d
+docker compose --profile stack up -d
 

@@ -102,4 +102,4 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$SHASTA_SIGNAL_SERVICE"
 fi
 
-docker compose --profile stack up -d
+./script/update-timestamp-and-compose.sh
