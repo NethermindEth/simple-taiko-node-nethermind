@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+# Load .env file if it exists
+ENV_FILE=".env"
+if [[ -f "$ENV_FILE" ]]; then
+    set -a
+    source "$ENV_FILE"
+    set +a
+fi
+
 # Configuration
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly BLOCKSCOUT_FILE="./ethereum-package/src/blockscout/blockscout_launcher.star"
@@ -94,34 +102,34 @@ trap cleanup EXIT
 # Get machine IP address
 get_machine_ip() {
     local ip=""
-    
+
     # Try multiple methods to get IP
     if command -v ip >/dev/null 2>&1; then
         ip=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' | head -n1)
     fi
-    
+
     if [[ -z "$ip" ]] && command -v hostname >/dev/null 2>&1; then
         ip=$(hostname -I 2>/dev/null | awk '{print $1}')
     fi
-    
+
     if [[ -z "$ip" ]] && command -v ip >/dev/null 2>&1; then
         ip=$(ip addr show 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | head -n1 | awk '{print $2}' | cut -d'/' -f1)
     fi
-    
+
     echo "$ip"
 }
 
 # Configure blockscout for remote access
 configure_remote_blockscout() {
     local machine_ip="$1"
-    
+
     log_info "Copy blockscout configuration..."
     cp "$BLOCKSCOUT_CONFIG_FILE" "$BLOCKSCOUT_FILE"
-    
+
     log_info "Configuring blockscout for remote access (IP: $machine_ip)..."
     sed -i.tmp "s/else \"localhost:{0}\"/else \"$machine_ip:{0}\"/g" "$BLOCKSCOUT_FILE"
     rm -f "${BLOCKSCOUT_FILE}.tmp"
-    
+
     log_success "Blockscout configured for remote access"
 }
 
@@ -153,13 +161,25 @@ configure_spamoor() {
     log_info "Configured spamoor for fixed port..."
 }
 
+# Configure network params with seconds_per_slot from .env
+configure_network_params() {
+    if [[ -n "${SECONDS_PER_SLOT:-}" ]]; then
+        log_info "Configuring seconds_per_slot to $SECONDS_PER_SLOT in network_params.yaml..."
+        sed -i.tmp "s/^\(\s*seconds_per_slot:\s*\)[0-9]\+/\1$SECONDS_PER_SLOT/" "$NETWORK_PARAMS"
+        rm -f "${NETWORK_PARAMS}.tmp"
+        log_success "Network params configured with seconds_per_slot: $SECONDS_PER_SLOT"
+    else
+        log_warning "SECONDS_PER_SLOT not set in .env, using default value from network_params.yaml"
+    fi
+}
+
 # Simple progress indicator
 show_progress() {
     local pid=$1
     local message="$2"
     local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     local i=0
-    
+
     printf "%s " "$message"
     while kill -0 $pid 2>/dev/null; do
         printf "\b%s" "${spinner:i++%${#spinner}:1}"
@@ -172,27 +192,27 @@ show_progress() {
 # Validate environment
 validate_environment() {
     log_info "Validating environment..."
-    
+
     # Check if enclave already exists
     if kurtosis enclave ls | grep -q "$ENCLAVE_NAME"; then
         log_warning "Enclave '$ENCLAVE_NAME' already exists"
         log_info "Removing existing enclave..."
         kurtosis enclave rm "$ENCLAVE_NAME" --force >/dev/null 2>&1 || true
     fi
-    
+
     # Check Docker is running
     if ! docker info >/dev/null 2>&1; then
         log_error "Docker is not running or not accessible"
         log_error "Please start Docker and ensure your user has docker permissions"
         return 1
     fi
-    
+
     # Check network params file exists
     if [[ ! -f "$NETWORK_PARAMS" ]]; then
         log_error "Network parameters file not found: $NETWORK_PARAMS"
         return 1
     fi
-    
+
     log_success "Environment validation passed"
     return 0
 }
@@ -201,7 +221,7 @@ validate_environment() {
 run_kurtosis() {
     local environment="$1"
     local mode="$2"
-    
+
     if [[ "$mode" == 0 ]]; then
         mode="silence"
     else
@@ -210,11 +230,11 @@ run_kurtosis() {
 
     echo
     log_info "Starting Surge DevNet L1 ($environment environment) in $mode mode..."
-    echo 
-    
+    echo
+
     local exit_status=0
     local temp_output="/tmp/surge_devnet_l1_output_$$"
-    
+
     # Run kurtosis based on mode
     if [[ "$mode" == "debug" ]]; then
         # Debug mode: run in foreground, capture output for error detection
@@ -226,12 +246,12 @@ run_kurtosis() {
         local kurtosis_pid=$!
         show_progress $kurtosis_pid "Initializing Surge DevNet L1..."
         echo
-        
+
         # Wait for completion and check status
         wait $kurtosis_pid
         exit_status=$?
     fi
-    
+
     # Check for specific error patterns in the output
     local has_errors=false
     if [[ -f "$temp_output" ]]; then
@@ -241,10 +261,10 @@ run_kurtosis() {
         fi
         # TODO: Add more error detection
     fi
-    
+
     # Clean up temp file (disabled for debugging purposes)
     # rm -f "$temp_output"
-    
+
     # Check the actual exit status and error patterns
     if [[ $exit_status -eq 0 && "$has_errors" == "false" ]]; then
         log_success "Surge DevNet L1 started successfully in $environment environment"
@@ -268,10 +288,10 @@ run_kurtosis() {
 # Check network health
 check_network_health() {
     log_info "Checking network health..."
-    
+
     local el_healthy=false
     local cl_healthy=false
-    
+
     # Check Execution Layer
     if curl -s http://localhost:32003 -X POST -H "Content-Type: application/json" \
         --data '{"jsonrpc":"2.0","id":0,"method":"eth_syncing","params":[]}' \
@@ -281,7 +301,7 @@ check_network_health() {
     else
         log_warning "Execution Layer is not synced or unreachable"
     fi
-    
+
     # Check Consensus Layer
     if curl -s http://localhost:33001/lighthouse/syncing \
         | jq -r '.data == "Synced"' >/dev/null 2>&1; then
@@ -290,7 +310,7 @@ check_network_health() {
     else
         log_warning "Beacon Node is not synced or unreachable"
     fi
-    
+
     if [[ "$el_healthy" == true && "$cl_healthy" == true ]]; then
         log_success "Network is healthy and ready"
     else
@@ -317,7 +337,7 @@ display_services_information() {
     echo
     log_info "Here are the main services information..."
     echo
-    
+
     # Hardcoded the ports for now
     # TODO: Update this to retrieve the ports from the enclave inspect output
     local el_rpc=32003
@@ -346,7 +366,7 @@ main() {
 
     # Parse arguments
     parse_arguments "$@"
-    
+
     log_info "Starting $SCRIPT_NAME..."
 
     # Check dependencies
@@ -356,7 +376,7 @@ main() {
             exit 1
         fi
     done
-    
+
     local env_choice
     if [[ -z "${environment:-}" ]]; then
         # Prompt deployment environment message
@@ -403,16 +423,17 @@ main() {
             # Remote deployment
             local machine_ip
             machine_ip=$(get_machine_ip)
-            
+
             if [[ -z "$machine_ip" ]]; then
                 log_error "Could not determine machine IP address"
                 log_error "Please ensure network connectivity and try again"
                 exit 1
             fi
-            
+
             configure_remote_blockscout "$machine_ip"
             configure_shared_utils
             configure_spamoor
+            configure_network_params
             if ! run_kurtosis "remote" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
                 kurtosis enclave rm "$ENCLAVE_NAME" --force >/dev/null 2>&1 || true
@@ -423,6 +444,7 @@ main() {
             configure_remote_blockscout "localhost"
             configure_shared_utils
             configure_spamoor
+            configure_network_params
             # Local deployment
             if ! run_kurtosis "local" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
@@ -435,11 +457,11 @@ main() {
             exit 1
             ;;
     esac
-    
+
     # Check network health
     sleep 5  # Give services time to start
     check_network_health
-    
+
     log_success "Surge DevNet L1 preparation complete!"
 
     display_services_information

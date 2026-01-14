@@ -135,17 +135,8 @@ fi
 
 if [ "$REMOVE_VOLUMES" = true ]; then
     log_info "Removing Docker volumes..."
-    
-    # Get project name (directory name)
-    PROJECT_NAME=$(basename "$PROJECT_ROOT" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]_-')
-    
-    # Remove volumes
-    docker volume rm "${PROJECT_NAME}_taiko-geth-data" 2>/dev/null || true
-    docker volume rm "${PROJECT_NAME}_taiko-nethermind-data" 2>/dev/null || true
-    
-    # Also try without prefix
-    docker volume rm "taiko-geth-data" 2>/dev/null || true
-    docker volume rm "taiko-nethermind-data" 2>/dev/null || true
+
+    docker compose --profile stack down -v
     
     log_success "Volumes removed"
 else

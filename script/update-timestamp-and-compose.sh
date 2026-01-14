@@ -21,9 +21,9 @@ if [ "$EXISTING_CONTAINERS" -eq 0 ]; then
     # First time running - update timestamp
     echo "First time running docker-compose. Updating TAIKO_INTERNAL_SHASTA_TIME..."
 
-    # Calculate timestamp: current time + 60 seconds
-    NEW_TIMESTAMP=$(($(date +%s) + 60))
-    
+    # Calculate timestamp: current time + 120 seconds
+    NEW_TIMESTAMP=$(($(date +%s) + 120))
+
     # Cross-platform date formatting (works on both macOS and Linux)
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS (BSD date)
@@ -65,4 +65,3 @@ fi
 # Run docker-compose up -d
 echo "Running: docker-compose up -d"
 docker compose --profile stack up -d
-
