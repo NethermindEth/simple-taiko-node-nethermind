@@ -87,7 +87,7 @@ network_params:
   shard_committee_period: 256
   deneb_fork_epoch: 0
   electra_fork_epoch: 0
-  fulu_fork_epoch: 18446744073709551615
+  fulu_fork_epoch: 0
   network_sync_base_url: https://snapshots.ethpandaops.io/
   force_snapshot_sync: false
   data_column_sidecar_subnet_count: 128
@@ -194,7 +194,7 @@ keymanager_enabled: false
 checkpoint_sync_enabled: false
 checkpoint_sync_url: ""
 ethereum_genesis_generator_params:
-  image: ethpandaops/ethereum-genesis-generator:master
+  image: ethpandaops/ethereum-genesis-generator:5.2.2
 port_publisher:
   nat_exit_ip: KURTOSIS_IP_ADDR_PLACEHOLDER
   el:
