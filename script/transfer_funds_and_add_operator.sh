@@ -81,8 +81,11 @@ if [ $((OPERATOR_COUNT)) -lt 2 ]; then
     cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_1 $OPERATOR_ADDRESS_1 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
     cast send $PRECONFIRMATION_WHITELIST "addOperator(address, address)" $OPERATOR_ADDRESS_2 $OPERATOR_ADDRESS_2 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
 
-    echo "Removing default operator"
-    cast send $PRECONFIRMATION_WHITELIST "removeOperatorByAddress(address)" 0x8943545177806ED17B9F23F0a21ee5948eCaa776 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
+    OPERATOR_COUNT=$(cast call $PRECONFIRMATION_WHITELIST "operatorCount()" --rpc-url $L1_ENDPOINT_WS)
+    if [ $((OPERATOR_COUNT)) -gt 2 ]; then
+      echo "Removing default operator"
+      cast send $PRECONFIRMATION_WHITELIST "removeOperatorByAddress(address)" 0x8943545177806ED17B9F23F0a21ee5948eCaa776 --rpc-url $L1_ENDPOINT_WS --private-key $CONTRACT_OWNER_PRIVATE_KEY
+    fi
 
     echo
     echo "Checking number of operators again"
