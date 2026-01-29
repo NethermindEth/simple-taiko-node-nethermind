@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Script to update TAIKO_INTERNAL_SHASTA_TIME to current time + 60 seconds
+# Script to update TAIKO_INTERNAL_SHASTA_TIME to current time + 120 seconds (or provided timestamp)
 # and then run docker-compose up -d
 #
-# Usage: ./script/update-timestamp-and-compose.sh
+# Usage: ./script/update-timestamp-and-compose.sh [timestamp]
+#   timestamp: Optional Unix timestamp. If not provided, uses current time + 120 seconds
 
 set -e  # Exit on error
 
@@ -21,8 +22,14 @@ if [ "$EXISTING_CONTAINERS" -eq 0 ]; then
     # First time running - update timestamp
     echo "First time running docker-compose. Updating TAIKO_INTERNAL_SHASTA_TIME..."
 
-    # Calculate timestamp: current time + 120 seconds
-    NEW_TIMESTAMP=$(($(date +%s) + 120))
+    # Use provided timestamp or calculate: current time + 120 seconds
+    if [ -n "$1" ]; then
+        NEW_TIMESTAMP="$1"
+        echo "Using provided timestamp: $NEW_TIMESTAMP"
+    else
+        NEW_TIMESTAMP=$(($(date +%s) + 120))
+        echo "Calculating timestamp: current time + 120 seconds"
+    fi
 
     # Cross-platform date formatting (works on both macOS and Linux)
     if [[ "$OSTYPE" == "darwin"* ]]; then
