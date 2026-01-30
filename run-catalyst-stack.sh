@@ -1,5 +1,25 @@
 set -e
 
+# Parse command-line argument
+PROTOCOL="${1:-}"
+
+# Validate argument
+if [ -z "$PROTOCOL" ]; then
+    echo "Error: Protocol argument is required."
+    echo "Usage: $0 [pacaya|shasta] [timestamp]"
+    echo "  protocol: 'pacaya' or 'shasta' (required)"
+    echo "  timestamp: Optional Unix timestamp for TAIKO_INTERNAL_SHASTA_TIME"
+    exit 1
+fi
+
+if [ "$PROTOCOL" != "pacaya" ] && [ "$PROTOCOL" != "shasta" ]; then
+    echo "Error: Invalid protocol argument. Must be 'pacaya' or 'shasta'."
+    echo "Usage: $0 [pacaya|shasta] [timestamp]"
+    echo "  protocol: 'pacaya' or 'shasta' (required)"
+    echo "  timestamp: Optional Unix timestamp for TAIKO_INTERNAL_SHASTA_TIME"
+    exit 1
+fi
+
 git submodule update --init
 
 # Helper function to update environment variables in .env file
@@ -20,7 +40,8 @@ update_env_var() {
 
 ENV_FILE=".env"
 
-if [ ! -f "./deployments/deploy_l1_pacaya.json" ]; then
+# Deploy Pacaya contracts if protocol is pacaya
+if [ "$PROTOCOL" = "pacaya" ] && [ ! -f "./deployments/deploy_l1_pacaya.json" ]; then
     echo "Deploying Pacaya contracts..."
     docker compose up pacaya-deployer
 
@@ -75,7 +96,8 @@ if [ ! -f "./deployments/deploy_l1_pacaya.json" ]; then
     update_env_var "$ENV_FILE" "PACAYA_TAIKO_WRAPPER" "$PACAYA_TAIKO_WRAPPER"
 fi
 
-if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
+# Deploy Shasta contracts if protocol is shasta
+if [ "$PROTOCOL" = "shasta" ] && [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     echo "Deploying Shasta contracts..."
     docker compose up shasta-deployer
 
@@ -102,4 +124,4 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$SHASTA_SIGNAL_SERVICE"
 fi
 
-./script/update-timestamp-and-compose.sh
+./script/update-timestamp-and-compose.sh "${2:-}" 
