@@ -41,7 +41,7 @@ update_env_var() {
 ENV_FILE=".env"
 
 # Deploy Pacaya contracts if protocol is pacaya
-if [ "$PROTOCOL" = "pacaya" ] && [ ! -f "./deployments/deploy_l1_pacaya.json" ]; then
+if [ ! -f "./deployments/deploy_l1_pacaya.json" ]; then
     echo "Deploying Pacaya contracts..."
     docker compose up pacaya-deployer
 
@@ -97,7 +97,7 @@ if [ "$PROTOCOL" = "pacaya" ] && [ ! -f "./deployments/deploy_l1_pacaya.json" ];
 fi
 
 # Deploy Shasta contracts if protocol is shasta
-if [ "$PROTOCOL" = "shasta" ] && [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
+if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     echo "Deploying Shasta contracts..."
     docker compose up shasta-deployer
 
