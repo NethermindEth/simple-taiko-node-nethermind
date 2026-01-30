@@ -461,6 +461,9 @@ main() {
     # Check network health
     sleep 5  # Give services time to start
     check_network_health
+    
+    log_info "Updating blockscout CPU usage for containers:"
+    docker update --cpus=".1" `docker ps --format '{{.ID}} {{.Names}}' | grep -E "blockscout" | awk '{print $1}'`
 
     log_success "Surge DevNet L1 preparation complete!"
 
