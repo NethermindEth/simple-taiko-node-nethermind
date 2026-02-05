@@ -104,4 +104,13 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$SHASTA_SIGNAL_SERVICE"
 fi
 
+# Deploy URC contracts if protocol is urc
+if [ ! -f "./deployments/deploy_l1_urc.json" ]; then
+    echo "Deploying URC contracts..."
+    docker compose up urc-deployer
+
+    export URC_REGISTRY=$(cat ./deployments/deploy_l1_urc.json | jq -r '.registry')
+    update_env_var "$ENV_FILE" "URC_REGISTRY" "$URC_REGISTRY"
+fi
+
 ./script/update-timestamp-and-compose.sh "${1:-}" 
