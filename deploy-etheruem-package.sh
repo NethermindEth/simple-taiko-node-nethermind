@@ -21,6 +21,8 @@ readonly SPAMOOR_FILE="./ethereum-package/src/spamoor/spamoor.star"
 readonly SPAMOOR_CONFIG_FILE="./configs/spamoor.star"
 readonly MAIN_FILE="./ethereum-package/main.star"
 readonly MAIN_CONFIG_FILE="./configs/main.star"
+readonly VALUES_ENV_FILE="./ethereum-package/static_files/genesis-generation-config/el-cl/values.env.tmpl"
+readonly VALUES_ENV_CONFIG_FILE="./configs/values.env.tmpl"
 readonly NETWORK_PARAMS="./configs/network_params.yaml"
 readonly ENCLAVE_NAME="surge-devnet"
 
@@ -159,6 +161,15 @@ configure_spamoor() {
     cp "$MAIN_CONFIG_FILE" "$MAIN_FILE"
 
     log_info "Configured spamoor for fixed port..."
+}
+
+# Configure genesis values.env template for correct slot timing
+configure_genesis_values() {
+    log_info "Copy genesis values.env template..."
+
+    cp "$VALUES_ENV_CONFIG_FILE" "$VALUES_ENV_FILE"
+
+    log_info "Configured genesis values.env template for correct slot timing..."
 }
 
 # Configure network params with seconds_per_slot from .env
@@ -433,6 +444,7 @@ main() {
             configure_remote_blockscout "$machine_ip"
             configure_shared_utils
             configure_spamoor
+            configure_genesis_values
             configure_network_params
             if ! run_kurtosis "remote" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
@@ -444,6 +456,7 @@ main() {
             configure_remote_blockscout "localhost"
             configure_shared_utils
             configure_spamoor
+            configure_genesis_values
             configure_network_params
             # Local deployment
             if ! run_kurtosis "local" $mode_choice; then
