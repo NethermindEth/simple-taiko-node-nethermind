@@ -33,6 +33,4 @@ forge script script/Deploy.s.sol \
     --private-key $PRIVATE_KEY \
     --block-gas-limit $BLOCK_GAS_LIMIT
 
-sleep 1000
-
-cp /app/config/deploy_urc.json /deployments/deploy_l1_urc.json
+cp /app/urc/config/deploy_urc.json /deployments/deploy_l1_urc.json
