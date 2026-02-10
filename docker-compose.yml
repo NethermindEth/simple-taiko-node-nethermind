@@ -485,6 +485,8 @@ services:
             retries: 20
         profiles:
             - stack
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
 
     urcindexer:
         image: ${URC_INDEXER_IMAGE}
@@ -503,6 +505,8 @@ services:
         restart: unless-stopped
         profiles:
             - stack
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
 
 volumes:
     taiko-geth-data-1:
