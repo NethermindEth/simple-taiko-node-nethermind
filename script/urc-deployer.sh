@@ -3,13 +3,6 @@
 # This script deploys the Registry contract using Foundry
 set -e
 
-# Registry contract configuration
-export MIN_COLLATERAL_WEI=${MIN_COLLATERAL_WEI:-"1000000000000000000"}
-export FRAUD_PROOF_WINDOW=${FRAUD_PROOF_WINDOW:-"86400"} # 1 day in seconds
-export UNREGISTRATION_DELAY=${UNREGISTRATION_DELAY:-"86400"} # 1 day in seconds
-export SLASH_WINDOW=${SLASH_WINDOW:-"86400"} # 1 day in seconds
-export OPT_IN_DELAY=${OPT_IN_DELAY:-"86400"} # 1 day in seconds
-
 # Broadcast transactions
 export BROADCAST=${BROADCAST:-true}
 

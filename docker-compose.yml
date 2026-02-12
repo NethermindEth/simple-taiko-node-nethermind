@@ -45,6 +45,11 @@ services:
         environment:
             - PRIVATE_KEY=0x${CONTRACT_OWNER_PRIVATE_KEY}
             - FORK_URL=${L1_ENDPOINT_HTTP}
+            - MIN_COLLATERAL_WEI=${MIN_COLLATERAL_WEI}
+            - FRAUD_PROOF_WINDOW=${FRAUD_PROOF_WINDOW}
+            - UNREGISTRATION_DELAY=${UNREGISTRATION_DELAY}
+            - SLASH_WINDOW=${SLASH_WINDOW}
+            - OPT_IN_DELAY=${OPT_IN_DELAY}
         command:
             - /deployer/urc-deployer.sh
         networks:
