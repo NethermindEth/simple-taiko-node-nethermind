@@ -223,7 +223,7 @@ services:
 
     preconfirmation-driver-1:
         container_name: preconfirmation-driver-1
-        image: taiko-client-rs:mskr
+        image: ${TAIKO_CLIENT_IMAGE}
         pull_policy: always
         command:
             - preconfirmation-driver
