@@ -217,7 +217,7 @@ services:
                   --p2p.listen=0.0.0.0:9000 \
                   --p2p.bootnodes=$$ENR \
                   --metrics.enabled \
-                  --verbosity=4
+                  --verbosity=3
         profiles:
             - stack
 
