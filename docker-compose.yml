@@ -1,22 +1,5 @@
 # This is the docker-compose file with L2 for the Kurtosis preconfirm devnet package.
 services:
-    pacaya-deployer:
-        container_name: pacaya-deployer
-        image: ${TAIKO_PROTOCOL_PACAYA_IMAGE}
-        volumes:
-            - ./script:/deployer:rw
-            - ./deployments:/deployments:rw
-        env_file:
-            - .env
-        command:
-            - /deployer/pacaya-deployer.sh
-        networks:
-            - preconf
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - deploy
-    
     shasta-deployer:
         container_name: shasta-deployer
         image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
@@ -33,7 +16,7 @@ services:
             - "host.docker.internal:host-gateway"
         profiles:
             - deploy
-    
+
     urc-deployer:
         container_name: urc-deployer
         image: ${URC_PROTOCOL_IMAGE}
@@ -176,6 +159,12 @@ services:
             - '--config=/data/taiko-geth/geth/config.toml'
             - '--nodekey=/data/taiko-geth/geth/nodekey'
             - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+        healthcheck:
+            test: ["CMD", "geth", "attach", "--exec", "eth.blockNumber", "http://localhost:8545"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
         profiles:
             - stack
 
@@ -214,26 +203,61 @@ services:
         command:
             - |
                 export ENR=$$(cat /bootnode/enr) && \
-                exec taiko-client driver \
+                exec /app/taiko-client whitelist-preconfirmation-driver \
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
-                  --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-1:8546 \
+                  --jwt.secret=/jwtsecret.hex \
+                  --l2.http=http://taiko-geth-1:8545 \
                   --l2.auth=http://taiko-geth-1:8551 \
-                  --preconfirmation.serverPort=1235 \
-                  --p2p.priv.path=/p2psecret.hex \
-                  --p2p.listen.tcp=9000 \
-                  --p2p.listen.udp=9000 \
-                  --p2p.useragent=taiko \
-                  --p2p.disable=false \
-                  --metrics=true \
-                  --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
-                  --p2p.advertise.ip=taiko-driver-1 \
-                  --p2p.bootnodes=$$ENR
+                  --l2.checkpoint=http://taiko-geth-1:8545 \
+                  --shasta.inbox=$${SHASTA_INBOX} \
+                  --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
+                  --preconfirmation.rpc-addr=0.0.0.0:1235 \
+                  --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.listen=0.0.0.0:9000 \
+                  --p2p.bootnodes=$$ENR \
+                  --metrics.enabled \
+                  --verbosity=4
         profiles:
             - stack
+
+    preconfirmation-driver-1:
+        container_name: preconfirmation-driver-1
+        image: taiko-client-rs:mskr
+        pull_policy: always
+        command:
+            - preconfirmation-driver
+            - --l1.ws
+            - ${L1_ENDPOINT_WS}
+            - --l2.http
+            - http://taiko-geth-1:8545
+            - --l2.auth
+            - http://taiko-geth-1:8551
+            - --jwt.secret
+            - /jwtsecret.hex
+            - --shasta.inbox
+            - ${SHASTA_INBOX}
+            - --l2.checkpoint
+            - http://taiko-geth-1:8545
+            - --l1.beacon
+            - ${L1_BEACON_HTTP}
+            - --preconf.rpc.addr
+            - "0.0.0.0:8550"
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+        # ports: TODO
+            # - "8550:8550"
+            # - "9000:9000"
+            # - "9001:9001"
+        depends_on:
+            taiko-geth-1:
+                condition: service_healthy
+        profiles:
+            - stack
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - preconf
 
     catalyst-node-1:
         container_name: catalyst-node-1
@@ -263,8 +287,8 @@ services:
             transfer-funds:
                 condition: service_completed_successfully
             taiko-geth-1:
-                condition: service_started
-            taiko-driver-1:
+                condition: service_healthy
+            preconfirmation-driver-1:
                 condition: service_started
             web3signer_l1:
                 condition: service_started
@@ -376,6 +400,12 @@ services:
             - '--config=/data/taiko-geth/geth/config.toml'
             - '--nodekey=/data/taiko-geth/geth/nodekey'
             - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+        healthcheck:
+            test: ["CMD", "geth", "attach", "--exec", "eth.blockNumber", "http://localhost:8545"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
         profiles:
             - stack
 
@@ -414,22 +444,21 @@ services:
         command:
             - |
                 export ENR=$$(cat /bootnode/enr) && \
-                exec taiko-client driver \
+                exec /app/taiko-client whitelist-preconfirmation-driver \
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
-                  --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-2:8546 \
+                  --jwt.secret=/jwtsecret.hex \
+                  --l2.http=http://taiko-geth-2:8545 \
                   --l2.auth=http://taiko-geth-2:8551 \
-                  --preconfirmation.serverPort=1235 \
-                  --p2p.priv.path=/p2psecret.hex \
-                  --p2p.listen.tcp=9000 \
-                  --p2p.listen.udp=9000 \
-                  --p2p.useragent=taiko \
-                  --p2p.disable=false \
-                  --p2p.advertise.ip=taiko-driver-2 \
-                  --metrics=true \
-                  --verbosity=4 \
-                  --p2p.bootnodes=$$ENR
+                  --l2.checkpoint=http://taiko-geth-2:8545 \
+                  --shasta.inbox=$${SHASTA_INBOX} \
+                  --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
+                  --preconfirmation.rpc-addr=0.0.0.0:1235 \
+                  --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.listen=0.0.0.0:9000 \
+                  --p2p.bootnodes=$$ENR \
+                  --metrics.enabled \
+                  --verbosity=2
         profiles:
             - stack
 
@@ -461,12 +490,12 @@ services:
             transfer-funds:
                 condition: service_completed_successfully
             taiko-geth-2:
-                condition: service_started
+                condition: service_healthy
             taiko-driver-2:
                 condition: service_started
         profiles:
             - stack
-    
+
     mysql:
         image: mysql:8.4
         container_name: urcindexer-mysql
