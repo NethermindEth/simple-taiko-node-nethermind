@@ -104,7 +104,7 @@ echo ""
 
 if [ "$SKIP_VALIDATION" = false ]; then
     log_info "PHASE 1: Pre-flight Checks"
-    
+
     # Check if .env file exists
     if [ ! -f "$ENV_FILE" ]; then
         log_warning ".env file not found"
@@ -118,18 +118,18 @@ if [ "$SKIP_VALIDATION" = false ]; then
             exit 1
         fi
     fi
-    
+
     # Load environment variables
     set -a
     source "$ENV_FILE"
     set +a
-    
+
     # Validate commands
     validate_commands || exit 1
-    
+
     # Validate Docker
     validate_docker || exit 1
-    
+
     # Validate L1 endpoints
     log_info "Validating L1 connectivity..."
     if ! validate_l1_endpoints "$L1_ENDPOINT_HTTP" "$L1_ENDPOINT_WS" "$L1_BEACON_HTTP"; then
@@ -137,23 +137,23 @@ if [ "$SKIP_VALIDATION" = false ]; then
         log_info "Please ensure your L1 devnet is running and endpoints are correct"
         exit 1
     fi
-    
+
     # Validate execution client
     EXECUTION_CLIENT="${OVERRIDE_CLIENT:-$EXECUTION_CLIENT}"
     validate_execution_client "$EXECUTION_CLIENT" || exit 1
-    
+
     # Update execution client in .env if overridden
     if [ -n "$OVERRIDE_CLIENT" ]; then
         update_env_file "$ENV_FILE" "EXECUTION_CLIENT" "$OVERRIDE_CLIENT"
     fi
-    
+
     # Validate required files
     validate_required_files "$PROJECT_ROOT" || exit 1
-    
+
     # Validate private keys
     validate_private_key "$OPERATOR_1_PRIVATE_KEY" "OPERATOR_1_PRIVATE_KEY" || exit 1
     validate_private_key "$CONTRACT_OWNER_PRIVATE_KEY" "CONTRACT_OWNER_PRIVATE_KEY" || exit 1
-    
+
     log_success "Pre-flight checks completed"
 else
     log_info "Skipping pre-flight validation"
@@ -175,7 +175,7 @@ if [ -z "$TAIKO_INTERNAL_SHASTA_TIME" ] || [ "$TAIKO_INTERNAL_SHASTA_TIME" = "0"
     TAIKO_INTERNAL_SHASTA_TIME=$(calculate_fork_timestamp "$FORK_BUFFER")
     update_env_file "$ENV_FILE" "TAIKO_INTERNAL_SHASTA_TIME" "$TAIKO_INTERNAL_SHASTA_TIME"
     log_info "Fork timestamp calculated: $TAIKO_INTERNAL_SHASTA_TIME"
-    
+
     # Display readable time
     if [[ "$OSTYPE" == "darwin"* ]]; then
         READABLE_TIME=$(date -r "$TAIKO_INTERNAL_SHASTA_TIME" '+%Y-%m-%d %H:%M:%S')
@@ -206,20 +206,20 @@ log_success "Configuration generated"
 
 if [ "$CLEAN_START" = true ]; then
     log_info "PHASE 3: Cleaning existing deployment"
-    
+
     if [ -f "$COMPOSE_FILE" ]; then
         log_info "Stopping and removing containers..."
         docker-compose -f "$COMPOSE_FILE" --profile geth --profile nethermind down -v 2>/dev/null || true
-        
+
         log_info "Removing volumes..."
         docker volume rm simple-taiko-node-nethermind_taiko-geth-data 2>/dev/null || true
         docker volume rm simple-taiko-node-nethermind_taiko-nethermind-data 2>/dev/null || true
-        
+
         log_success "Cleanup completed"
     fi
 else
     log_info "PHASE 3: Checking for existing containers"
-    
+
     # Check if containers are already running
     if docker-compose -f "$COMPOSE_FILE" ps -q 2>/dev/null | grep -q .; then
         log_warning "Containers are already running"
@@ -274,7 +274,7 @@ if [ "$DEPLOYMENT_EXISTS" = true ] && [ "$SKIP_DEPLOYMENT" = false ] && [ "$INTE
     read -p "Choose an option [1/2/3]: " -n 1 -r
     echo ""
     echo ""
-    
+
     case "$REPLY" in
         1)
             SKIP_DEPLOYMENT=true
@@ -436,7 +436,6 @@ echo ""
 
 if [ "${DEPLOY_CONTRACTS:-false}" = "true" ]; then
     log_info "DEPLOYMENT PHASE:"
-    log_info "  Monitor Pacaya:  docker logs -f pacaya-deployer"
     log_info "  Monitor Shasta:   docker logs -f shasta-deployer"
     log_info "  Monitor Init:     docker logs -f catalyst-init"
     echo ""

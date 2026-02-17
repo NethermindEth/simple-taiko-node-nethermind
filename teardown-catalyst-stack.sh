@@ -108,10 +108,9 @@ if [ -f "$COMPOSE_FILE" ]; then
 else
     log_warning "Docker compose file not found: $COMPOSE_FILE"
     log_info "Attempting to stop containers by name..."
-    
+
     # Stop containers by name (including deployers)
     for container in \
-        pacaya-deployer \
         shasta-deployer \
         catalyst-init \
         catalyst-node \
@@ -125,7 +124,7 @@ else
             docker rm "$container" 2>/dev/null || true
         fi
     done
-    
+
     log_success "Containers stopped"
 fi
 
@@ -137,7 +136,7 @@ if [ "$REMOVE_VOLUMES" = true ]; then
     log_info "Removing Docker volumes..."
 
     docker compose --profile stack down -v
-    
+
     log_success "Volumes removed"
 else
     log_info "Keeping Docker volumes (use --volumes to remove)"
@@ -149,7 +148,7 @@ fi
 
 if [ "$REMOVE_DEPLOYMENTS" = true ]; then
     log_info "Removing deployment files..."
-    
+
     if [ -d "$PROJECT_ROOT/deployments" ]; then
         rm -f "$PROJECT_ROOT/deployments/deploy_l1.json" 2>/dev/null || true
         rm -f "$PROJECT_ROOT/deployments/deploy_l1_pacaya.json" 2>/dev/null || true
@@ -169,10 +168,10 @@ fi
 
 if [ "$REMOVE_CONFIG" = true ]; then
     log_info "Removing generated config files..."
-    
+
     # Remove generated configs (be careful not to remove user configs)
     rm -f "$PROJECT_ROOT/geth-config.generated.toml" 2>/dev/null || true
-    
+
     log_success "Generated config files removed"
 else
     log_info "Keeping config files (use --config to remove)"
