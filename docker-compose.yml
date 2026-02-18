@@ -124,7 +124,7 @@ services:
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
+            - '--syncmode=full'
             - '--cache=4096'
             - '--maxpeers=100'
             - '--maxpendpeers=50'
@@ -209,11 +209,11 @@ services:
                   --jwt.secret=/jwtsecret.hex \
                   --l2.http=http://taiko-geth-1:8545 \
                   --l2.auth=http://taiko-geth-1:8551 \
-                  --l2.checkpoint=http://taiko-geth-1:8545 \
                   --shasta.inbox=$${SHASTA_INBOX} \
                   --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
                   --preconfirmation.rpc-addr=0.0.0.0:1235 \
                   --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.chain-id=$${L2_CHAIN_ID} \
                   --p2p.listen=0.0.0.0:9000 \
                   --p2p.bootnodes=$$ENR \
                   --metrics.enabled \
@@ -237,8 +237,6 @@ services:
             - /jwtsecret.hex
             - --shasta.inbox
             - ${SHASTA_INBOX}
-            - --l2.checkpoint
-            - http://taiko-geth-1:8545
             - --l1.beacon
             - ${L1_BEACON_HTTP}
             - --preconf.rpc.addr
@@ -365,7 +363,7 @@ services:
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
+            - '--syncmode=full'
             - '--cache=4096'
             - '--maxpeers=100'
             - '--maxpendpeers=50'
@@ -450,11 +448,11 @@ services:
                   --jwt.secret=/jwtsecret.hex \
                   --l2.http=http://taiko-geth-2:8545 \
                   --l2.auth=http://taiko-geth-2:8551 \
-                  --l2.checkpoint=http://taiko-geth-2:8545 \
                   --shasta.inbox=$${SHASTA_INBOX} \
                   --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
                   --preconfirmation.rpc-addr=0.0.0.0:1235 \
                   --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.chain-id=$${L2_CHAIN_ID} \
                   --p2p.listen=0.0.0.0:9000 \
                   --p2p.bootnodes=$$ENR \
                   --metrics.enabled \
