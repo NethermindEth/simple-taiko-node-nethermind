@@ -23,6 +23,10 @@ readonly MAIN_FILE="./ethereum-package/main.star"
 readonly MAIN_CONFIG_FILE="./configs/main.star"
 readonly VALUES_ENV_FILE="./ethereum-package/static_files/genesis-generation-config/el-cl/values.env.tmpl"
 readonly VALUES_ENV_CONFIG_FILE="./configs/values.env.tmpl"
+readonly MEV_RELAY_LAUNCHER_FILE="./ethereum-package/src/mev/flashbots/mev_relay/mev_relay_launcher.star"
+readonly MEV_RELAY_LAUNCHER_CONFIG_FILE="./configs/mev_relay_launcher.star"
+readonly FLASHBOTS_RBUILDER_FILE="./ethereum-package/static_files/mev/flashbots/mev_builder/config.toml.tmpl"
+readonly FLASHBOTS_RBUILDER_CONFIG_FILE="./configs/config.toml.tmpl"
 readonly NETWORK_PARAMS="./configs/network_params.yaml"
 readonly ENCLAVE_NAME="surge-devnet"
 
@@ -182,6 +186,18 @@ configure_network_params() {
     else
         log_warning "SECONDS_PER_SLOT not set in .env, using default value from network_params.yaml"
     fi
+}
+
+# Configure mev
+configure_mev() {
+    log_info "Copy mev relay launcher file..."
+
+    cp "$MEV_RELAY_LAUNCHER_CONFIG_FILE" "$MEV_RELAY_LAUNCHER_FILE"
+    log_info "Configured mev relay launcher to add FULU_FORK_VERSION..."
+
+    log_info "Copy flashbots mev builder static config toml file..."
+    cp "$FLASHBOTS_RBUILDER_CONFIG_FILE" "$FLASHBOTS_RBUILDER_FILE"
+    log_info "Configured flashbots mev builder static config toml file to include the correct fields..."
 }
 
 # Simple progress indicator
@@ -446,6 +462,7 @@ main() {
             configure_spamoor
             configure_genesis_values
             configure_network_params
+            configure_mev
             if ! run_kurtosis "remote" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
                 kurtosis enclave rm "$ENCLAVE_NAME" --force >/dev/null 2>&1 || true
@@ -458,6 +475,7 @@ main() {
             configure_spamoor
             configure_genesis_values
             configure_network_params
+            configure_mev
             # Local deployment
             if ! run_kurtosis "local" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
