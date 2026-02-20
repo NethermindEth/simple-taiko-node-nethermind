@@ -199,6 +199,7 @@ services:
         depends_on:
             - taiko-geth-1
             - p2p-bootnode
+            - taiko-driver-2
         entrypoint: ["/bin/sh", "-c"]
         command:
             - |
@@ -213,9 +214,10 @@ services:
                   --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
                   --preconfirmation.rpc-addr=0.0.0.0:1235 \
                   --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
                   --p2p.chain-id=$${L2_CHAIN_ID} \
                   --p2p.listen=0.0.0.0:9000 \
-                  --p2p.bootnodes=$$ENR \
+                  --p2p.static-peers=/dns4/taiko-driver-2/tcp/9000 \
                   --metrics.enabled \
                   --verbosity=3
         profiles:
@@ -452,9 +454,9 @@ services:
                   --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
                   --preconfirmation.rpc-addr=0.0.0.0:1235 \
                   --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+                  --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
                   --p2p.chain-id=$${L2_CHAIN_ID} \
                   --p2p.listen=0.0.0.0:9000 \
-                  --p2p.bootnodes=$$ENR \
                   --metrics.enabled \
                   --verbosity=2
         profiles:
