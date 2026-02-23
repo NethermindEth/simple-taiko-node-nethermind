@@ -151,7 +151,7 @@ if [ "$REMOVE_DEPLOYMENTS" = true ]; then
 
     if [ -d "$PROJECT_ROOT/deployments" ]; then
         rm -f "$PROJECT_ROOT/deployments/deploy_l1.json" 2>/dev/null || true
-        rm -f "$PROJECT_ROOT/deployments/deploy_l1_pacaya.json" 2>/dev/null || true
+        rm -f "$PROJECT_ROOT/deployments/deploy_l1_urc.json" 2>/dev/null || true
         rm -f "$PROJECT_ROOT/deployments/deploy_l1_shasta.json" 2>/dev/null || true
         rm -f "$PROJECT_ROOT/deployments/deploy_l1_base.json" 2>/dev/null || true
         log_success "Deployment files removed"
