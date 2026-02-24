@@ -154,60 +154,60 @@ services:
         profiles:
             - stack
 
-    taiko-driver-1:
-        container_name: taiko-driver-1
-        image: ${TAIKO_CLIENT_IMAGE}
-        restart: unless-stopped
-        pull_policy: always
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        volumes:
-            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - ./p2psecret-1.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
-            - bootnode-data:/bootnode:ro
-        ports:
-            # P2P
-            - "${PORT_P2P_DRIVER_1}:9000"
-            # Metrics
-            # - 6060:6061
-        networks:
-            - preconf
-        labels:
-            metrics_enabled: "true"
-            metrics_port: "6061"
-            logs_enabled: "true"
-            custom_operator: "dev"
-            custom_network: "dev"
-        # Inherit env vars from parent process
-        env_file:
-            - .env
-            - .env.stack-1
-        depends_on:
-            - taiko-geth-1
-            - p2p-bootnode
-            - taiko-driver-2
-        entrypoint: ["/bin/sh", "-c"]
-        command:
-            - |
-                export ENR=$$(cat /bootnode/enr) && \
-                exec /app/taiko-client whitelist-preconfirmation-driver \
-                  --l1.ws=$${L1_ENDPOINT_WS} \
-                  --l1.beacon=$${L1_BEACON_HTTP} \
-                  --jwt.secret=/jwtsecret.hex \
-                  --l2.http=http://taiko-geth-1:8545 \
-                  --l2.auth=http://taiko-geth-1:8551 \
-                  --shasta.inbox=$${SHASTA_INBOX} \
-                  --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
-                  --preconfirmation.rpc-addr=0.0.0.0:1235 \
-                  --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
-                  --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
-                  --p2p.chain-id=$${L2_CHAIN_ID} \
-                  --p2p.listen=0.0.0.0:9000 \
-                  --p2p.static-peers=/dns4/taiko-driver-2/tcp/9000 \
-                  --metrics.enabled \
-                  --verbosity=3
-        profiles:
-            - stack
+    # taiko-driver-1:
+    #     container_name: taiko-driver-1
+    #     image: ${TAIKO_CLIENT_IMAGE}
+    #     restart: unless-stopped
+    #     pull_policy: always
+    #     extra_hosts:
+    #         - "host.docker.internal:host-gateway"
+    #     volumes:
+    #         - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
+    #         - ./p2psecret-1.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
+    #         - bootnode-data:/bootnode:ro
+    #     ports:
+    #         # P2P
+    #         - "${PORT_P2P_DRIVER_1}:9000"
+    #         # Metrics
+    #         # - 6060:6061
+    #     networks:
+    #         - preconf
+    #     labels:
+    #         metrics_enabled: "true"
+    #         metrics_port: "6061"
+    #         logs_enabled: "true"
+    #         custom_operator: "dev"
+    #         custom_network: "dev"
+    #     # Inherit env vars from parent process
+    #     env_file:
+    #         - .env
+    #         - .env.stack-1
+    #     depends_on:
+    #         - taiko-geth-1
+    #         - p2p-bootnode
+    #         - taiko-driver-2
+    #     entrypoint: ["/bin/sh", "-c"]
+    #     command:
+    #         - |
+    #             export ENR=$$(cat /bootnode/enr) && \
+    #             exec /app/taiko-client whitelist-preconfirmation-driver \
+    #               --l1.ws=$${L1_ENDPOINT_WS} \
+    #               --l1.beacon=$${L1_BEACON_HTTP} \
+    #               --jwt.secret=/jwtsecret.hex \
+    #               --l2.http=http://taiko-geth-1:8545 \
+    #               --l2.auth=http://taiko-geth-1:8551 \
+    #               --shasta.inbox=$${SHASTA_INBOX} \
+    #               --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
+    #               --preconfirmation.rpc-addr=0.0.0.0:1235 \
+    #               --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+    #               --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
+    #               --p2p.chain-id=$${L2_CHAIN_ID} \
+    #               --p2p.listen=0.0.0.0:9000 \
+    #               --p2p.static-peers=/dns4/taiko-driver-2/tcp/9000 \
+    #               --metrics.enabled \
+    #               --verbosity=3
+    #     profiles:
+    #         - stack
 
     preconfirmation-driver-1:
         container_name: preconfirmation-driver-1
@@ -231,10 +231,8 @@ services:
             - "0.0.0.0:8550"
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
-        # ports: TODO
-            # - "8550:8550"
-            # - "9000:9000"
-            # - "9001:9001"
+        ports:
+            - "${PORT_P2P_DRIVER_1}:9000"
         depends_on:
             taiko-geth-1:
                 condition: service_healthy
@@ -244,6 +242,11 @@ services:
             - "host.docker.internal:host-gateway"
         networks:
             - preconf
+        environment:
+            - RUST_LOG=debug
+        env_file:
+            - .env
+            - .env.stack-1
 
     catalyst-node-1:
         container_name: catalyst-node-1
@@ -395,58 +398,95 @@ services:
         profiles:
             - stack
 
-    taiko-driver-2:
-        container_name: taiko-driver-2
+    # taiko-driver-2:
+    #     container_name: taiko-driver-2
+    #     image: ${TAIKO_CLIENT_IMAGE}
+    #     restart: unless-stopped
+    #     pull_policy: always
+    #     extra_hosts:
+    #         - "host.docker.internal:host-gateway"
+    #     volumes:
+    #         - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
+    #         - ./p2psecret-2.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
+    #         - bootnode-data:/bootnode:ro
+    #     ports:
+    #         # P2P
+    #         - "${PORT_P2P_DRIVER_2}:9000"
+    #         # Metrics
+    #         # - 6060:6061
+    #     networks:
+    #         - preconf
+    #     labels:
+    #         metrics_enabled: "true"
+    #         metrics_port: "6061"
+    #         logs_enabled: "true"
+    #         custom_operator: "dev"
+    #         custom_network: "dev"
+    #     # Inherit env vars from parent process
+    #     env_file:
+    #         - .env
+    #         - .env.stack-2
+    #     depends_on:
+    #         - taiko-geth-2
+    #         - p2p-bootnode
+    #     entrypoint: ["/bin/sh", "-c"]
+    #     command:
+    #         - |
+    #             export ENR=$$(cat /bootnode/enr) && \
+    #             exec /app/taiko-client whitelist-preconfirmation-driver \
+    #               --l1.ws=$${L1_ENDPOINT_WS} \
+    #               --l1.beacon=$${L1_BEACON_HTTP} \
+    #               --jwt.secret=/jwtsecret.hex \
+    #               --l2.http=http://taiko-geth-2:8545 \
+    #               --l2.auth=http://taiko-geth-2:8551 \
+    #               --shasta.inbox=$${SHASTA_INBOX} \
+    #               --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
+    #               --preconfirmation.rpc-addr=0.0.0.0:1235 \
+    #               --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
+    #               --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
+    #               --p2p.chain-id=$${L2_CHAIN_ID} \
+    #               --p2p.listen=0.0.0.0:9000 \
+    #               --metrics.enabled \
+    #               --verbosity=2
+    #     profiles:
+    #         - stack
+
+    preconfirmation-driver-2:
+        container_name: preconfirmation-driver-2
         image: ${TAIKO_CLIENT_IMAGE}
-        restart: unless-stopped
         pull_policy: always
+        command:
+            - preconfirmation-driver
+            - --l1.ws
+            - ${L1_ENDPOINT_WS}
+            - --l2.http
+            - http://taiko-geth-2:8545
+            - --l2.auth
+            - http://taiko-geth-2:8551
+            - --jwt.secret
+            - /jwtsecret.hex
+            - --shasta.inbox
+            - ${SHASTA_INBOX}
+            - --l1.beacon
+            - ${L1_BEACON_HTTP}
+            - --preconf.rpc.addr
+            - "0.0.0.0:8550"
+        volumes:
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+        ports:
+            - "${PORT_P2P_DRIVER_2}:9000"
+        depends_on:
+            taiko-geth-2:
+                condition: service_healthy
+        profiles:
+            - stack
         extra_hosts:
             - "host.docker.internal:host-gateway"
-        volumes:
-            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - ./p2psecret-2.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
-            - bootnode-data:/bootnode:ro
-        ports:
-            # P2P
-            - "${PORT_P2P_DRIVER_2}:9000"
-            # Metrics
-            # - 6060:6061
         networks:
             - preconf
-        labels:
-            metrics_enabled: "true"
-            metrics_port: "6061"
-            logs_enabled: "true"
-            custom_operator: "dev"
-            custom_network: "dev"
-        # Inherit env vars from parent process
         env_file:
             - .env
             - .env.stack-2
-        depends_on:
-            - taiko-geth-2
-            - p2p-bootnode
-        entrypoint: ["/bin/sh", "-c"]
-        command:
-            - |
-                export ENR=$$(cat /bootnode/enr) && \
-                exec /app/taiko-client whitelist-preconfirmation-driver \
-                  --l1.ws=$${L1_ENDPOINT_WS} \
-                  --l1.beacon=$${L1_BEACON_HTTP} \
-                  --jwt.secret=/jwtsecret.hex \
-                  --l2.http=http://taiko-geth-2:8545 \
-                  --l2.auth=http://taiko-geth-2:8551 \
-                  --shasta.inbox=$${SHASTA_INBOX} \
-                  --shasta.preconf-whitelist=$${SHASTA_PRECONF_WHITELIST} \
-                  --preconfirmation.rpc-addr=0.0.0.0:1235 \
-                  --preconfirmation.p2p-signer-key=$${PRECONFIRMATION_P2P_SEQUENCER_KEY} \
-                  --p2p.sequencer-addresses=$${P2P_SEQUENCER_ADDRESSES} \
-                  --p2p.chain-id=$${L2_CHAIN_ID} \
-                  --p2p.listen=0.0.0.0:9000 \
-                  --metrics.enabled \
-                  --verbosity=2
-        profiles:
-            - stack
 
     catalyst-node-2:
         container_name: catalyst-node-2
@@ -477,8 +517,8 @@ services:
                 condition: service_completed_successfully
             taiko-geth-2:
                 condition: service_healthy
-            taiko-driver-2:
-                condition: service_started
+            # taiko-driver-2:
+            #     condition: service_started
         profiles:
             - stack
 
