@@ -1,22 +1,5 @@
 # This is the docker-compose file with L2 for the Kurtosis preconfirm devnet package.
 services:
-    shasta-deployer:
-        container_name: shasta-deployer
-        image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
-        volumes:
-            - ./script:/deployer:rw
-            - ./deployments:/deployments:rw
-        env_file:
-            - .env
-        command:
-            - /deployer/shasta-deployer.sh
-        networks:
-            - preconf
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - deploy
-
     urc-deployer:
         container_name: urc-deployer
         image: ${URC_PROTOCOL_IMAGE}
@@ -35,6 +18,24 @@ services:
             - OPT_IN_DELAY=${OPT_IN_DELAY}
         command:
             - /deployer/urc-deployer.sh
+        networks:
+            - preconf
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        profiles:
+            - deploy
+
+    shasta-deployer:
+        container_name: shasta-deployer
+        image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
+        volumes:
+            - ./script:/deployer:rw
+            - ./deployments:/deployments:rw
+            - ./deployments:/app/deployments:rw
+        env_file:
+            - .env
+        command:
+            - /deployer/shasta-deployer.sh
         networks:
             - preconf
         extra_hosts:

@@ -188,6 +188,15 @@ configure_network_params() {
     fi
 }
 
+# Configure MIN_VALIDATORS in input_parser from .env
+configure_min_validators() {
+    local min_validators="${MIN_VALIDATORS:-1}"
+    log_info "Configuring MIN_VALIDATORS to $min_validators in input_parser.star..."
+    sed -i.tmp "s/^MIN_VALIDATORS = [0-9]\+/MIN_VALIDATORS = $min_validators/" "$INPUT_PARSER_FILE"
+    rm -f "${INPUT_PARSER_FILE}.tmp"
+    log_success "MIN_VALIDATORS configured: $min_validators"
+}
+
 # Configure mev
 configure_mev() {
     log_info "Copy mev relay launcher file..."
@@ -462,6 +471,7 @@ main() {
             configure_spamoor
             configure_genesis_values
             configure_network_params
+            configure_min_validators
             configure_mev
             if ! run_kurtosis "remote" $mode_choice; then
                 log_error "Deployment failed, cleaning up..."
@@ -475,6 +485,7 @@ main() {
             configure_spamoor
             configure_genesis_values
             configure_network_params
+            configure_min_validators
             configure_mev
             # Local deployment
             if ! run_kurtosis "local" $mode_choice; then
