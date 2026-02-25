@@ -46,6 +46,7 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     export SHASTA_SIGNAL_SERVICE=$(cat ./deployments/deploy_l1_shasta.json | jq -r '.signal_service')
     export SHASTA_PRECONF_WHITELIST=$(cat ./deployments/deploy_l1_shasta.json | jq -r '.preconf_whitelist')
     export SHASTA_TAIKO_TOKEN=$(cat ./deployments/deploy_l1_shasta.json | jq -r '.taiko_token')
+    export LOOKAHEAD_STORE_ADDRESS=$(cat ./deployments/deploy_l1_shasta.json | jq -r '.lookahead_store')
     export URC=$URC_REGISTRY
 
     update_env_var "$ENV_FILE" "SHASTA_AUTOMATA_DCAP_ATTESTATION" "$SHASTA_AUTOMATA_DCAP_ATTESTATION"
@@ -60,6 +61,7 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$SHASTA_SIGNAL_SERVICE"
     update_env_var "$ENV_FILE" "SHASTA_PRECONF_WHITELIST" "$SHASTA_PRECONF_WHITELIST"
     update_env_var "$ENV_FILE" "SHASTA_TAIKO_TOKEN" "$SHASTA_TAIKO_TOKEN"
+    update_env_var "$ENV_FILE" "LOOKAHEAD_STORE_ADDRESS" "$LOOKAHEAD_STORE_ADDRESS"
 fi
 
 # ./script/update-timestamp-and-compose.sh "${1:-}"
