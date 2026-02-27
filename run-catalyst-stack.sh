@@ -18,6 +18,27 @@ update_env_var() {
     fi
 }
 
+# Register operators for a given stack (1 or 2), then update REGISTRATION_ROOT in .env.stack-<n>
+register_operators_for_stack() {
+    local stack="$1"
+    echo "Registering operator for stack ${stack}..."
+    local env_file_stack=".env.stack-${stack}"
+    local register_output
+    register_output=$(mktemp)
+    docker compose --env-file .env --env-file "$env_file_stack" --profile deploy up register-operators 2>&1 | tee "$register_output"
+    local registration_root
+    registration_root=$(grep "Registration root:" "$register_output" | sed 's/.*Registration root: *//' | tr -d '\r\n')
+    rm -f "$register_output"
+    if [ -n "$registration_root" ]; then
+        update_env_var "$env_file_stack" "REGISTRATION_ROOT" "$registration_root"
+        echo "REGISTRATION_ROOT=$registration_root (stack-${stack})"
+    fi
+
+    sleep 12
+    echo "Opting in to slasher for stack ${stack}..."
+    docker compose --env-file .env --env-file "$env_file_stack" --profile deploy up opt-in-to-slasher 2>&1 | tee "$register_output"
+}
+
 ENV_FILE=".env"
 
 # Deploy URC contracts if protocol is urc
@@ -64,6 +85,11 @@ if [ ! -f "./deployments/deploy_l1_shasta.json" ]; then
     update_env_var "$ENV_FILE" "LOOKAHEAD_STORE_ADDRESS" "$LOOKAHEAD_STORE_ADDRESS"
 fi
 
-# ./script/update-timestamp-and-compose.sh "${1:-}"
+
+# TODO: commented until we implemented proper whitelist mode.
+# register_operators_for_stack 1
+# sleep 12
+# register_operators_for_stack 2
+
 echo "Running: docker-compose up -d"
 docker compose --profile stack up -d

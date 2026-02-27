@@ -66,6 +66,54 @@ services:
         profiles:
             - stack
 
+    register-operators:
+        image: nethswitchboard/urc-cli:latest
+        container_name: register-operators
+        command:
+            - register
+            - --rpc
+            - ${L1_ENDPOINT_HTTP}
+            - --registry
+            - ${URC_REGISTRY}
+            - --owner-pk
+            - ${CONTRACT_OWNER_PRIVATE_KEY}
+            - --bls-pk
+            - ${BLS_PK}
+        networks:
+            - preconf
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        profiles:
+            - deploy
+        env_file:
+            - .env
+
+    opt-in-to-slasher:
+        image: nethswitchboard/urc-cli:latest
+        container_name: opt-in-to-slasher
+        command:
+            - opt-in-to-slasher
+            - --rpc
+            - ${L1_ENDPOINT_HTTP}
+            - --registry
+            - ${URC_REGISTRY}
+            - --owner-pk
+            - ${CONTRACT_OWNER_PRIVATE_KEY}
+            - --registration-root
+            - ${REGISTRATION_ROOT}
+            - --slasher
+            - ${LOOKAHEAD_SLASHER_ADDRESS}
+            - --committer
+            - ${COMMITTER_ADDRESS}
+        networks:
+            - preconf
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        profiles:
+            - deploy
+        env_file:
+            - .env
+
     p2p-bootnode:
         container_name: p2p-bootnode
         image: nethswitchboard/bootnode-p2p:whitelist
