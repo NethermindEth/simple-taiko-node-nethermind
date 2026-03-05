@@ -29,6 +29,7 @@ readonly ENCLAVE_NAME="surge-devnet"
 # Default values for command line arguments
 environment=""
 mode=""
+blockscout=""
 
 # Colors for output
 readonly RED='\033[0;31m'
@@ -57,10 +58,11 @@ log_error() {
 # Show usage help
 show_help() {
   echo "Usage:"
-  echo "  $0 --environment local|remote --mode silence|debug"
+  echo "  $0 --environment local|remote --mode silence|debug --blockscout yes|no"
   echo
   echo "    Environment: local (default) or remote"
   echo "    Mode: silence (default) or debug"
+  echo "    Blockscout: no (default) or yes"
   echo
   echo "Options:"
   echo "  -h, --help  Show this help message"
@@ -77,6 +79,10 @@ parse_arguments() {
         ;;
       --mode)
         mode="$2"
+        shift 2
+        ;;
+      --blockscout)
+        blockscout="$2"
         shift 2
         ;;
       -h|--help)
