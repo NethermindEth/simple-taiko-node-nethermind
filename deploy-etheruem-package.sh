@@ -366,6 +366,8 @@ prompt_blockscout() {
 
 # Display main services information
 display_services_information() {
+    local show_blockscout="${1:-0}"
+
     echo
     log_info "Here are the main services information..."
     echo
@@ -383,7 +385,9 @@ display_services_information() {
     echo "Execution Layer RPC:    http://127.0.0.1:$el_rpc"
     echo "Execution Layer WS:     ws://127.0.0.1:$el_ws"
     echo "Consensus Layer API:    http://127.0.0.1:$cl_api"
-    echo "Block Explorer:         http://127.0.0.1:$blockscout_frontend"
+    if [[ "$show_blockscout" == "1" || "$show_blockscout" == "yes" ]]; then
+        echo "Block Explorer:         http://127.0.0.1:$blockscout_frontend"
+    fi
     echo "Transaction Spammer UI:    http://127.0.0.1:$spamoor_url"
     echo
     echo "Use these URLs to interact with your Surge DevNet L1!"
@@ -479,7 +483,11 @@ main() {
                 exit 1
             fi
 
-            configure_remote_blockscout "$machine_ip"
+            if [[ "$blockscout_choice" == "1" || "$blockscout_choice" == "yes" ]]; then
+                configure_remote_blockscout "$machine_ip"
+            else
+                configure_blockscout_disabled
+            fi
             configure_shared_utils
             configure_spamoor
             configure_genesis_values
@@ -491,7 +499,11 @@ main() {
             fi
             ;;
         0|"local"|"")
-            configure_remote_blockscout "localhost"
+            if [[ "$blockscout_choice" == "1" || "$blockscout_choice" == "yes" ]]; then
+                configure_remote_blockscout "localhost"
+            else
+                configure_blockscout_disabled
+            fi
             configure_shared_utils
             configure_spamoor
             configure_genesis_values
@@ -513,12 +525,14 @@ main() {
     sleep 5  # Give services time to start
     check_network_health
     
-    log_info "Updating blockscout CPU usage for containers:"
-    docker update --cpus=".1" `docker ps --format '{{.ID}} {{.Names}}' | grep -E "blockscout" | awk '{print $1}'`
+    if [[ "$blockscout_choice" == "1" || "$blockscout_choice" == "yes" ]]; then
+        log_info "Updating blockscout CPU usage for containers:"
+        docker update --cpus=".1" $(docker ps --format '{{.ID}} {{.Names}}' | grep -E "blockscout" | awk '{print $1}')
+    fi
 
     log_success "Surge DevNet L1 preparation complete!"
 
-    display_services_information
+    display_services_information "$blockscout_choice"
 }
 
 # Run main function
