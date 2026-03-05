@@ -141,6 +141,14 @@ configure_remote_blockscout() {
     log_success "Blockscout configured for remote access"
 }
 
+# Remove blockscout from additional_services in network_params.yaml
+configure_blockscout_disabled() {
+    log_info "Disabling blockscout in network_params.yaml..."
+    sed -i.tmp "/^\s*- blockscout\s*$/d" "$NETWORK_PARAMS"
+    rm -f "${NETWORK_PARAMS}.tmp"
+    log_success "Blockscout disabled"
+}
+
 # Configure shared_utils for more ports
 configure_shared_utils() {
     log_info "Copy shared_utils configuration..."
