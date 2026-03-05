@@ -349,6 +349,13 @@ prompt_deployment_mode() {
     echo $choice
 }
 
+# Prompt user for blockscout enablement
+prompt_blockscout() {
+    read -p "Enter choice [0]: " choice
+    choice=${choice:-0}
+    echo $choice
+}
+
 # Display main services information
 display_services_information() {
     echo
@@ -428,6 +435,23 @@ main() {
         mode_choice=$(prompt_deployment_mode)
     else
         mode_choice=$mode
+    fi
+
+    local blockscout_choice
+    if [[ -z "${blockscout:-}" ]]; then
+        # Prompt blockscout enablement
+        echo
+        echo "╔══════════════════════════════════════════════════════════════╗"
+        echo "  Enable Blockscout block explorer?                            "
+        echo "║══════════════════════════════════════════════════════════════║"
+        echo "║  0 for no (default)                                          ║"
+        echo "║  1 for yes                                                   ║"
+        echo "╚══════════════════════════════════════════════════════════════╝"
+        echo
+
+        blockscout_choice=$(prompt_blockscout)
+    else
+        blockscout_choice=$blockscout
     fi
 
     if ! validate_environment; then
