@@ -277,8 +277,8 @@ services:
             - ${L1_BEACON_HTTP}
             - --preconf.rpc.addr
             - "0.0.0.0:8550"
-            # - --p2p.static-peers
-            # - /dns4/preconfirmation-driver-2/tcp/9000
+            - --p2p.static-peers
+            - /dns4/preconfirmation-driver-2/tcp/9000
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
         ports:
