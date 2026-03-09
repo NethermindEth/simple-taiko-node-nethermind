@@ -37,6 +37,15 @@ readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
+# Cross-platform sed in-place edit (macOS requires an extension argument)
+sed_inplace() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 # Logging functions
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -453,11 +462,11 @@ main() {
     export run_blockscout=$(prompt_run_blockscout)
 
     if [[ "$run_blockscout" == 0 ]]; then
-        sed -i '' 's/^  - blockscout$/  # - blockscout/' configs/network_params.yaml
-        sed -i '' 's/^additional_services:$/additional_services: []/' configs/network_params.yaml
+        sed_inplace 's/^  - blockscout$/  # - blockscout/' configs/network_params.yaml
+        sed_inplace 's/^additional_services:$/additional_services: []/' configs/network_params.yaml
     else
-        sed -i '' 's/^  # - blockscout$/  - blockscout/' configs/network_params.yaml
-        sed -i '' 's/^additional_services: \[\]$/additional_services:/' configs/network_params.yaml
+        sed_inplace 's/^  # - blockscout$/  - blockscout/' configs/network_params.yaml
+        sed_inplace 's/^additional_services: \[\]$/additional_services:/' configs/network_params.yaml
         log_info "Blockscout will be run"
     fi
 
