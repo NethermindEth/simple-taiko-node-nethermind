@@ -343,6 +343,13 @@ prompt_deployment_mode() {
     echo $choice
 }
 
+# Prompt user for run blockscout
+prompt_run_blockscout() {
+    read -p "Enter choice [0]: " choice
+    choice=${choice:-0}
+    echo $choice
+}
+
 # Display main services information
 display_services_information() {
     echo
@@ -362,7 +369,9 @@ display_services_information() {
     echo "Execution Layer RPC:    http://127.0.0.1:$el_rpc"
     echo "Execution Layer WS:     ws://127.0.0.1:$el_ws"
     echo "Consensus Layer API:    http://127.0.0.1:$cl_api"
+    if [[ "$run_blockscout" == 1 ]]; then
     echo "Block Explorer:         http://127.0.0.1:$blockscout_frontend"
+    fi
     echo "Transaction Spammer UI:    http://127.0.0.1:$spamoor_url"
     echo
     echo "Use these URLs to interact with your Surge DevNet L1!"
@@ -429,6 +438,29 @@ main() {
         exit 1
     fi
 
+    local run_blockscout
+    # Prompt run blockscout
+    echo
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "  ⚠️ Select run blockscout:                                    "
+    echo "║══════════════════════════════════════════════════════════════║"
+    echo "║  0 for no (default)                                          ║"
+    echo "║  1 for yes                                                   ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo
+
+    # Get run blockscout
+    export run_blockscout=$(prompt_run_blockscout)
+
+    if [[ "$run_blockscout" == 0 ]]; then
+        sed -i '' 's/^  - blockscout$/  # - blockscout/' configs/network_params.yaml
+        sed -i '' 's/^additional_services:$/additional_services: []/' configs/network_params.yaml
+    else
+        sed -i '' 's/^  # - blockscout$/  - blockscout/' configs/network_params.yaml
+        sed -i '' 's/^additional_services: \[\]$/additional_services:/' configs/network_params.yaml
+        log_info "Blockscout will be run"
+    fi
+
     case "$env_choice" in
         1|"remote")
             # Remote deployment
@@ -475,8 +507,8 @@ main() {
     sleep 5  # Give services time to start
     check_network_health
     
-    log_info "Updating blockscout CPU usage for containers:"
-    docker update --cpus=".1" `docker ps --format '{{.ID}} {{.Names}}' | grep -E "blockscout" | awk '{print $1}'`
+    # log_info "Updating blockscout CPU usage for containers:"
+    # docker update --cpus=".1" `docker ps --format '{{.ID}} {{.Names}}' | grep -E "blockscout" | awk '{print $1}'`
 
     log_success "Surge DevNet L1 preparation complete!"
 
