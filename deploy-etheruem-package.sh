@@ -255,14 +255,17 @@ run_kurtosis() {
     local exit_status=0
     local temp_output="/tmp/surge_devnet_l1_output_$$"
 
+    local abs_network_params
+    abs_network_params="$(realpath "$NETWORK_PARAMS")"
+
     # Run kurtosis based on mode
     if [[ "$mode" == "debug" ]]; then
         # Debug mode: run in foreground, capture output for error detection
-        kurtosis run --enclave "$ENCLAVE_NAME" ./ethereum-package --args-file "$NETWORK_PARAMS" --production --image-download always --verbosity brief 2>&1 | tee "$temp_output"
+        (cd ./ethereum-package && kurtosis run --enclave "$ENCLAVE_NAME" . --args-file "$abs_network_params" --production --image-download always --verbosity brief) 2>&1 | tee "$temp_output"
         exit_status=${PIPESTATUS[0]}
     else
         # Silent mode: run in background with progress indicator
-        kurtosis run --enclave "$ENCLAVE_NAME" ./ethereum-package --args-file "$NETWORK_PARAMS" --production --image-download always >"$temp_output" 2>&1 &
+        (cd ./ethereum-package && kurtosis run --enclave "$ENCLAVE_NAME" . --args-file "$abs_network_params" --production --image-download always) >"$temp_output" 2>&1 &
         local kurtosis_pid=$!
         show_progress $kurtosis_pid "Initializing Surge DevNet L1..."
         echo
