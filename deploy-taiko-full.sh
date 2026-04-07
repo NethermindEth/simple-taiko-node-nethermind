@@ -514,8 +514,11 @@ compute_genesis_hash() {
     local full_genesis_file
     full_genesis_file=$(mktemp /tmp/taiko-genesis-full.XXXXXX.json)
 
+    # Use --slurpfile to read genesis alloc from file directly (avoids
+    # "Argument list too long" when the alloc JSON exceeds shell ARG limits).
+    # --slurpfile wraps the content in an array, so reference it as $alloc[0].
     jq -n \
-        --argjson alloc "$(cat "$GENESIS_FILE")" \
+        --slurpfile alloc "$GENESIS_FILE" \
         --argjson block "$genesis_block" \
         --argjson chainId "${L2_CHAIN_ID:-167001}" \
         --arg hexTs "$hex_timestamp" \
@@ -541,7 +544,7 @@ compute_genesis_hash() {
             cancunTime:          0,
             taiko:               true
           },
-          alloc:        $alloc,
+          alloc:        $alloc[0],
           nonce:        $block.nonce,
           mixHash:      $block.mixHash,
           coinbase:     $block.miner,
