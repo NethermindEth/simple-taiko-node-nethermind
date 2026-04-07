@@ -39,7 +39,7 @@ client=""
 mode=""
 skip_l1_devnet="false"
 skip_contracts="false"
-enable_l1_blockscout="false"
+enable_l1_blockscout=""
 enable_l2_blockscout=""
 enable_l2_spammer=""
 force=""
@@ -47,8 +47,15 @@ force=""
 # Source shared helpers
 source "${SCRIPT_DIR}/helpers.sh"
 
-# Clean up temporary genesis-check containers on exit / Ctrl+C
-trap 'docker rm -f taiko-genesis-check nethermind-genesis-hash 2>/dev/null || true' EXIT INT TERM
+# Unified exit/interrupt handler — cleans up genesis check containers and
+# restores ethereum-package modifications.  Must be declared before any
+# sub-traps so it is not silently overwritten later.
+_cleanup() {
+    docker rm -f taiko-genesis-check nethermind-genesis-hash 2>/dev/null || true
+    cleanup_ethereum_package
+}
+trap '_cleanup; exit 130' INT TERM
+trap '_cleanup' EXIT
 
 # ─── Help ─────────────────────────────────────────────────────────────────────
 show_help() {
@@ -141,7 +148,6 @@ cleanup_ethereum_package() {
         (cd ./ethereum-package && git restore . 2>/dev/null || true)
     fi
 }
-trap cleanup_ethereum_package EXIT
 
 # ─── Phase 1: L1 devnet via Kurtosis ─────────────────────────────────────────
 deploy_l1_devnet() {
@@ -652,11 +658,8 @@ start_l2_stack() {
         "geth")       compose_file="$COMPOSE_FILE_GETH" ;;
     esac
 
-    # Build profile arguments
-    local profile_args=""
-    if [[ "$client_choice" == "geth" ]]; then
-        profile_args="--profile stack"
-    fi
+    # Build profile arguments — stack profile is required for both clients
+    local profile_args="--profile stack"
     if [[ "$with_blockscout" == "true" ]]; then
         profile_args="$profile_args --profile blockscout"
     fi
@@ -782,12 +785,12 @@ display_deployment_summary() {
         echo "║  • Pacaya + Shasta contracts     (pre-existing)              ║"
     fi
     printf "║  • L2 execution client           %-28s║\n" "$client_choice"
-    echo "║  • Catalyst nodes + drivers      running                    ║"
+    echo "║  • Catalyst nodes + drivers      running                     ║"
     if [[ "$with_blockscout" == "true" ]]; then
-        echo "║  • L2 Blockscout explorer        running                    ║"
+        echo "║  • L2 Blockscout explorer        running                     ║"
     fi
     if [[ "$with_spammer" == "true" ]]; then
-        echo "║  • L2 transaction spammer        running                    ║"
+        echo "║  • L2 transaction spammer        running                     ║"
     fi
     echo "║                                                              ║"
     echo "║  Service endpoints:                                          ║"
@@ -849,11 +852,13 @@ main() {
     # ── Resolve execution client ───────────────────────────────────────────────
     if [[ -z "$client" ]]; then
         local existing_client="${EXECUTION_CLIENT:-}"
-        if [[ -n "$existing_client" ]]; then
+        # Only reuse the cached client when skipping L1 (stack restart).
+        # On a fresh deploy always prompt/default so the user can choose.
+        if [[ -n "$existing_client" && "$skip_l1_devnet" == "true" ]]; then
             log_info "Using execution client from .env: $existing_client"
             client="$existing_client"
         elif [[ "$force" == "true" ]]; then
-            client="nethermind"
+            client="${existing_client:-nethermind}"
         else
             local client_raw
             client_raw=$(prompt_client_selection)
@@ -882,10 +887,10 @@ main() {
         echo "╠══════════════════════════════════════════════════════════════╣" >&2
         echo "║  The canonical genesis will be fetched automatically from:   ║" >&2
         echo "║  taikoxyz/taiko-geth  (core/taiko_genesis/internal.json)     ║" >&2
-        echo "║                                                               ║" >&2
+        echo "║                                                              ║" >&2
         echo "║  It will be converted to a Nethermind chainspec at:          ║" >&2
         echo "║  static/taiko-shasta-chainspec.json                          ║" >&2
-        echo "║                                                               ║" >&2
+        echo "║                                                              ║" >&2
         echo "║  Override the source URL by setting TAIKO_GENESIS_URL.       ║" >&2
         echo "╚══════════════════════════════════════════════════════════════╝" >&2
         echo >&2
@@ -901,6 +906,22 @@ main() {
             case "$env_raw" in
                 1|"remote") environment="remote" ;;
                 *)           environment="local" ;;
+            esac
+        fi
+    fi
+
+    # ── Resolve L1 blockscout ────────────────────────────────────────────────
+    if [[ "$skip_l1_devnet" == "true" ]]; then
+        enable_l1_blockscout="${enable_l1_blockscout:-false}"
+    elif [[ -z "$enable_l1_blockscout" ]]; then
+        if [[ "$force" == "true" ]]; then
+            enable_l1_blockscout="false"
+        else
+            local l1bs_raw
+            l1bs_raw=$(prompt_yes_no_selection "Enable L1 Blockscout explorer?")
+            case "$l1bs_raw" in
+                1|"yes"|"true") enable_l1_blockscout="true" ;;
+                *)               enable_l1_blockscout="false" ;;
             esac
         fi
     fi
@@ -963,6 +984,7 @@ main() {
     echo "  Output mode:       $mode"
     echo "  Skip L1 devnet:    $skip_l1_devnet"
     echo "  Skip contracts:    $skip_contracts"
+    echo "  L1 Blockscout:     $enable_l1_blockscout"
     echo "  L2 Blockscout:     $enable_l2_blockscout"
     echo "  L2 Spammer:        $enable_l2_spammer"
     echo

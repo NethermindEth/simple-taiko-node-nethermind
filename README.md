@@ -160,9 +160,10 @@ The script walks you through a series of prompts:
 
 1. **L2 execution client** — choose `nethermind` (default) or `taiko-geth`
 2. **Deployment environment** — choose `local` (default) or `remote`
-3. **Output mode** — choose `silence` (default, shows a spinner) or `debug` (full logs)
-4. **L2 Blockscout explorer** — optional block explorer for the L2 (yes / no)
-5. **L2 transaction spammer** — optional background traffic generator (yes / no)
+3. **L1 Blockscout explorer** — optional block explorer for the L1 devnet (yes / no)
+4. **Output mode** — choose `silence` (default, shows a spinner) or `debug` (full logs)
+5. **L2 Blockscout explorer** — optional block explorer for the L2 (yes / no)
+6. **L2 transaction spammer** — optional background traffic generator (yes / no)
 
 Each prompt shows `[0]` as the default — just press **Enter** to accept it.
 
@@ -285,7 +286,7 @@ Pass all options as flags to skip every prompt. Useful in CI or when you want a 
 | `--environment` | `local` \| `remote` | interactive | Whether the L1 devnet is local or remote |
 | `--skip-l1-devnet` | — | false | Skip L1 devnet deployment (reuse running devnet) |
 | `--skip-contracts` | — | false | Skip contract deployment (reuse existing `deployments/`) |
-| `--l1-blockscout` | — | false | Enable Blockscout inside the L1 devnet |
+| `--l1-blockscout` | `true` \| `false` | interactive | Enable Blockscout inside the L1 devnet |
 | `--l2-blockscout` | `true` \| `false` | interactive | Enable L2 Blockscout explorer |
 | `--l2-spammer` | `true` \| `false` | interactive | Enable L2 transaction spammer |
 | `--mode` | `silence` \| `debug` | interactive | Output verbosity |

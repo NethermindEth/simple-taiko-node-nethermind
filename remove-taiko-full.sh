@@ -185,13 +185,31 @@ remove_l2_stack() {
     local temp_output="/tmp/taiko_remove_stack_output_$$"
 
     run_stack_down() {
-        # Always attempt both compose files with all profiles so nothing is left dangling
+        # Best-effort docker compose down for both stacks with all profiles
         docker compose -f "$COMPOSE_FILE_GETH" \
             --profile stack --profile deploy --profile blockscout --profile spammer \
             down --remove-orphans 2>&1 || true
         docker compose -f "$COMPOSE_FILE_NETHERMIND" \
-            --profile blockscout --profile spammer \
+            --profile stack --profile blockscout --profile spammer \
             down --remove-orphans 2>&1 || true
+
+        # Hard fallback: SIGKILL then force-remove all known containers by name
+        # in case docker compose down missed any (project-name mismatch, profile
+        # omissions, or containers that ignore SIGTERM)
+        local known_containers=(
+            taiko-nethermind-1 taiko-nethermind-2
+            taiko-geth-1 taiko-geth-2
+            taiko-driver-1 taiko-driver-2
+            catalyst-node-1 catalyst-node-2
+            fork-switch transfer-funds p2p-bootnode
+            web3signer_l1 web3signer_l2
+            pacaya-deployer shasta-deployer
+            l2-tx-spammer
+            l2-blockscout l2-blockscout-frontend
+            l2-blockscout-postgres l2-blockscout-verif
+        )
+        docker kill --signal=SIGKILL "${known_containers[@]}" 2>/dev/null || true
+        docker rm -f "${known_containers[@]}" 2>/dev/null || true
     }
 
     if [[ "$mode_choice" == "debug" ]]; then
@@ -230,12 +248,24 @@ remove_docker_volumes() {
     local temp_output="/tmp/taiko_remove_volumes_output_$$"
 
     run_volume_removal() {
+        # Best-effort docker compose down -v for both stacks
         docker compose -f "$COMPOSE_FILE_GETH" \
             --profile stack --profile blockscout --profile spammer \
             down -v --remove-orphans 2>&1 || true
         docker compose -f "$COMPOSE_FILE_NETHERMIND" \
-            --profile blockscout --profile spammer \
+            --profile stack --profile blockscout --profile spammer \
             down -v --remove-orphans 2>&1 || true
+
+        # Hard fallback: remove known named volumes that compose may have missed
+        local known_volumes=(
+            simple-taiko-node-nethermind_taiko-nethermind-data-1
+            simple-taiko-node-nethermind_taiko-nethermind-data-2
+            simple-taiko-node-nethermind_taiko-geth-data-1
+            simple-taiko-node-nethermind_taiko-geth-data-2
+            simple-taiko-node-nethermind_bootnode-data
+            simple-taiko-node-nethermind_blockscout-postgres-data
+        )
+        docker volume rm "${known_volumes[@]}" 2>/dev/null || true
     }
 
     if [[ "$mode_choice" == "debug" ]]; then
@@ -441,7 +471,16 @@ main() {
     # ── Component selection ────────────────────────────────────────────────────
     local components_to_remove=""
     if [[ -z "${remove_l1_devnet:-}${remove_stack:-}${remove_volumes:-}${remove_deployments:-}${remove_env:-}" ]]; then
-        components_to_remove=$(prompt_component_selection)
+        if [[ "$force" == "true" ]]; then
+            # --force with no explicit component flags: remove everything except .env
+            remove_l1_devnet="true"
+            remove_stack="true"
+            remove_volumes="true"
+            remove_deployments="true"
+            remove_env="${remove_env:-false}"
+        else
+            components_to_remove=$(prompt_component_selection)
+        fi
     fi
 
     # Parse numeric component selection
