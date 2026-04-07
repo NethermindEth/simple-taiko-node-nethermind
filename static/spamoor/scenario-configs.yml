@@ -1,0 +1,2 @@
+- {"config":{"throughput":5},"name":"Standard ETH transfers","scenario":"eoatx"}
+- {"config":{"throughput":5},"name":"Deploy ERC20 tokens and perform transfers","scenario":"erctx"}

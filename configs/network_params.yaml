@@ -104,8 +104,8 @@ network_params:
   additional_preloaded_contracts: {}
   devnet_repo: ethpandaops
   prefunded_accounts: {}
-additional_services:
-  - blockscout
+additional_services: []
+  # - blockscout
   # - spamoor
 dora_params:
   image: ""

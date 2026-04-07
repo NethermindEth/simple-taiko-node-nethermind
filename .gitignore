@@ -4,5 +4,4 @@
 .idea/
 
 node_modules/
-deploy_l1_pacaya.json
-deploy_l1_shasta.json
+deployments/*.json
