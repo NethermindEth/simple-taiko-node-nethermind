@@ -541,7 +541,7 @@ compute_genesis_hash() {
             shastaTimestamp:     $hexTs,
             feeCollector:        "0x0000000000000000000000000000000000000000",
             shanghaiTime:        0,
-            cancunTime:          0,
+            cancunTime:          null,
             taiko:               true
           },
           alloc:        $alloc[0],
