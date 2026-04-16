@@ -1,39 +1,5 @@
-# This is the docker-compose file with L2 for the Kurtosis preconfirm devnet package.
+# This is the docker-compose file with L2 using Nethermind for the Kurtosis preconfirm devnet package.
 services:
-    pacaya-deployer:
-        container_name: pacaya-deployer
-        image: ${TAIKO_PROTOCOL_PACAYA_IMAGE}
-        volumes:
-            - ./script:/deployer:rw
-            - ./deployments:/deployments:rw
-        env_file:
-            - .env
-        command:
-            - /deployer/pacaya-deployer.sh
-        networks:
-            - preconf
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - deploy
-    
-    shasta-deployer:
-        container_name: shasta-deployer
-        image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
-        volumes:
-            - ./script:/deployer:rw
-            - ./deployments:/deployments:rw
-        env_file:
-            - .env
-        command:
-            - /deployer/shasta-deployer.sh
-        networks:
-            - preconf
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - deploy
-
     transfer-funds:
         container_name: transfer-funds
         image: ghcr.io/foundry-rs/foundry:stable
@@ -87,71 +53,58 @@ services:
         profiles:
             - stack
 
-    taiko-geth-1:
-        container_name: taiko-geth-1
-        image: ${TAIKO_GETH_IMAGE}
+    taiko-nethermind-1:
+        container_name: taiko-nethermind-1
+        image: nethermindeth/nethermind:master
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - taiko-geth-data-1:/data/taiko-geth
-            - ./geth-1-nodekey:/data/taiko-geth/geth/nodekey:ro
-            - ./geth-1-config.toml:/data/taiko-geth/geth/config.toml:ro
+            - taiko-nethermind-data-1:/data/nethermind
+            - ./static/taiko-shasta-chainspec.json:/taiko-shasta-chainspec.json:ro
         ports:
-            - "${PORT_L2_EXECUTION_ENGINE_1_METRICS}:6060"
-            - "${PORT_L2_EXECUTION_ENGINE_1_HTTP}:8545"
-            - "${PORT_L2_EXECUTION_ENGINE_1_WS}:8546"
-            - "${PORT_L2_EXECUTION_ENGINE_1_P2P}:30303"
-            - "${PORT_L2_EXECUTION_ENGINE_1_P2P}:30303/udp"
-            - "${PORT_L2_EXECUTION_ENGINE_1_AUTH}:8551"
+            - "${PORT_L2_EXECUTION_ENGINE_1_METRICS}:9091"
+            - "${PORT_L2_EXECUTION_ENGINE_1_HTTP}:8547"
+            - "${PORT_L2_EXECUTION_ENGINE_1_WS}:8548"
+            - "${PORT_L2_EXECUTION_ENGINE_1_P2P}:30304"
+            - "${PORT_L2_EXECUTION_ENGINE_1_P2P}:30304/udp"
+            - "${PORT_L2_EXECUTION_ENGINE_1_AUTH}:8552"
         networks:
             - preconf
         labels:
             metrics_enabled: "true"
-            #metrics_port: "6060"
             logs_enabled: "true"
             custom_operator: "dev"
             custom_network: "dev"
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
-            - '--cache=4096'
-            - '--maxpeers=100'
-            - '--maxpendpeers=50'
-            - '--txpool.globalslots=10000'
-            - '--txpool.globalqueue=10000'
-            - '--rpc.batch-request-limit=5000'
-            - '--rpc.batch-response-max-size=50000000'
-            - '--rpc.txfeecap=10'
-            - '--gcmode=archive'
-            - '--datadir=/data/taiko-geth'
-            - '--networkid=${L2_CHAIN_ID}'
-            - '--port=30303'
-            - '--nodiscover'
-            - '--metrics'
-            - '--metrics.addr=0.0.0.0'
-            #- '--metrics.port=6060'
-            - '--http'
-            - '--http.addr=0.0.0.0'
-            - '--http.vhosts=*'
-            - '--http.corsdomain=*'
-            - '--ws'
-            - '--ws.addr=0.0.0.0'
-            - '--ws.origins=*'
-            - '--authrpc.addr=0.0.0.0'
-            - '--authrpc.port=8551'
-            - '--authrpc.vhosts=*'
-            - '--authrpc.jwtsecret=/jwtsecret.hex'
-            - '--allow-insecure-unlock'
-            - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--taiko'
-            - '--config=/data/taiko-geth/geth/config.toml'
-            - '--nodekey=/data/taiko-geth/geth/nodekey'
-            - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+            - './nethermind/nethermind'
+            - '--data-dir=/data/nethermind'
+            - '--config=none'
+            - '--Init.ChainSpecPath=/taiko-shasta-chainspec.json'
+            - '--Init.GenesisHash=${L2_GENESIS_HASH}'
+            - '--jsonrpc-jwtsecretfile=/jwtsecret.hex'
+            - '--JsonRpc.Enabled=true'
+            - '--JsonRpc.Host=0.0.0.0'
+            - '--JsonRpc.Port=8547'
+            - '--JsonRpc.EnabledModules=debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health'
+            - '--JsonRpc.EngineHost=0.0.0.0'
+            - '--JsonRpc.EnginePort=8552'
+            - '--JsonRpc.WebSocketsPort=8548'
+            - '--Metrics.Enabled=true'
+            - '--Metrics.ExposeHost=0.0.0.0'
+            - '--Network.P2PPort=30304'
+            - '--Network.DiscoveryPort=30304'
+            - '--JsonRpc.MaxBatchResponseBodySize=120000000'
+            - '--Sync.FastSync=false'
+            - '--Sync.SnapSync=false'
+            - '--Seq.MinLevel=Info'
+            - '--Seq.ServerUrl=https://seq.nethermind.io'
+            - '--Pruning.PruningBoundary=1000'
+            - '--log=debug'
         profiles:
             - stack
 
@@ -184,7 +137,7 @@ services:
             - .env
             - .env.stack-1
         depends_on:
-            - taiko-geth-1
+            - taiko-nethermind-1
             - p2p-bootnode
         entrypoint: ["/bin/sh", "-c"]
         command:
@@ -194,19 +147,19 @@ services:
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
                   --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-1:8546 \
-                  --l2.auth=http://taiko-geth-1:8551 \
+                  --l2.ws=ws://taiko-nethermind-1:8548 \
+                  --l2.auth=http://taiko-nethermind-1:8552 \
                   --preconfirmation.serverPort=1235 \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
                   --p2p.useragent=taiko \
                   --p2p.disable=false \
+                  --p2p.advertise.ip=taiko-driver-1 \
                   --metrics=true \
                   --verbosity=4 \
                   --pacayaInbox=$${PACAYA_INBOX} \
                   --shastaInbox=$${SHASTA_INBOX} \
-                  --p2p.advertise.ip=taiko-driver-1 \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -232,13 +185,13 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-1
+            - .env.stack-1-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
             transfer-funds:
                 condition: service_completed_successfully
-            taiko-geth-1:
+            taiko-nethermind-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -284,74 +237,60 @@ services:
             - stack
 
 
-
 ### stack #2
 
-    taiko-geth-2:
-        container_name: taiko-geth-2
-        image: ${TAIKO_GETH_IMAGE}
+    taiko-nethermind-2:
+        container_name: taiko-nethermind-2
+        image: nethermindeth/nethermind:master
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
-            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - taiko-geth-data-2:/data/taiko-geth
-            - ./geth-2-config.toml:/data/taiko-geth/geth/config.toml:ro
-            - ./geth-2-nodekey:/data/taiko-geth/geth/nodekey:ro
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+            - taiko-nethermind-data-2:/data/nethermind
+            - ./static/taiko-shasta-chainspec.json:/taiko-shasta-chainspec.json:ro
         ports:
-            - "${PORT_L2_EXECUTION_ENGINE_2_METRICS}:6060"
-            - "${PORT_L2_EXECUTION_ENGINE_2_HTTP}:8545"
-            - "${PORT_L2_EXECUTION_ENGINE_2_WS}:8546"
-            - "${PORT_L2_EXECUTION_ENGINE_2_P2P}:30303"
-            - "${PORT_L2_EXECUTION_ENGINE_2_P2P}:30303/udp"
-            - "${PORT_L2_EXECUTION_ENGINE_2_AUTH}:8551"
+            - "${PORT_L2_EXECUTION_ENGINE_2_METRICS}:9091"
+            - "${PORT_L2_EXECUTION_ENGINE_2_HTTP}:8547"
+            - "${PORT_L2_EXECUTION_ENGINE_2_WS}:8548"
+            - "${PORT_L2_EXECUTION_ENGINE_2_P2P}:30304"
+            - "${PORT_L2_EXECUTION_ENGINE_2_P2P}:30304/udp"
+            - "${PORT_L2_EXECUTION_ENGINE_2_AUTH}:8552"
         networks:
             - preconf
         labels:
             metrics_enabled: "true"
-            #metrics_port: "6060"
             logs_enabled: "true"
             custom_operator: "dev"
             custom_network: "dev"
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
-            - '--cache=4096'
-            - '--maxpeers=100'
-            - '--maxpendpeers=50'
-            - '--txpool.globalslots=10000'
-            - '--txpool.globalqueue=10000'
-            - '--rpc.batch-request-limit=5000'
-            - '--rpc.batch-response-max-size=50000000'
-            - '--rpc.txfeecap=10'
-            - '--gcmode=archive'
-            - '--datadir=/data/taiko-geth'
-            - '--networkid=${L2_CHAIN_ID}'
-            - '--port=30303'
-            - '--nodiscover'
-            - '--metrics'
-            - '--metrics.addr=0.0.0.0'
-            #- '--metrics.port=6060'
-            - '--http'
-            - '--http.addr=0.0.0.0'
-            - '--http.vhosts=*'
-            - '--http.corsdomain=*'
-            - '--ws'
-            - '--ws.addr=0.0.0.0'
-            - '--ws.origins=*'
-            - '--authrpc.addr=0.0.0.0'
-            - '--authrpc.port=8551'
-            - '--authrpc.vhosts=*'
-            - '--authrpc.jwtsecret=/jwtsecret.hex'
-            - '--allow-insecure-unlock'
-            - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--taiko'
-            - '--config=/data/taiko-geth/geth/config.toml'
-            - '--nodekey=/data/taiko-geth/geth/nodekey'
-            - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+            - './nethermind/nethermind'
+            - '--data-dir=/data/nethermind'
+            - '--config=none'
+            - '--Init.ChainSpecPath=/taiko-shasta-chainspec.json'
+            - '--Init.GenesisHash=${L2_GENESIS_HASH}'
+            - '--jsonrpc-jwtsecretfile=/jwtsecret.hex'
+            - '--JsonRpc.Enabled=true'
+            - '--JsonRpc.Host=0.0.0.0'
+            - '--JsonRpc.Port=8547'
+            - '--JsonRpc.EnabledModules=debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health'
+            - '--JsonRpc.EngineHost=0.0.0.0'
+            - '--JsonRpc.EnginePort=8552'
+            - '--JsonRpc.WebSocketsPort=8548'
+            - '--Metrics.Enabled=true'
+            - '--Metrics.ExposeHost=0.0.0.0'
+            - '--Network.P2PPort=30304'
+            - '--Network.DiscoveryPort=30304'
+            - '--JsonRpc.MaxBatchResponseBodySize=120000000'
+            - '--Sync.FastSync=false'
+            - '--Sync.SnapSync=false'
+            - '--Seq.MinLevel=Info'
+            - '--Seq.ServerUrl=https://seq.nethermind.io'
+            - '--Pruning.PruningBoundary=1000'
+            - '--log=debug'
         profiles:
             - stack
 
@@ -363,8 +302,8 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
-            - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - ./p2psecret-2.hex:/p2psecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > p2psecret.hex`
+            - ./jwtsecret.hex:/jwtsecret.hex:ro
+            - ./p2psecret-2.hex:/p2psecret.hex:ro
             - bootnode-data:/bootnode:ro
         ports:
             # P2P
@@ -379,12 +318,11 @@ services:
             logs_enabled: "true"
             custom_operator: "dev"
             custom_network: "dev"
-        # Inherit env vars from parent process
         env_file:
             - .env
             - .env.stack-2
         depends_on:
-            - taiko-geth-2
+            - taiko-nethermind-2
             - p2p-bootnode
         entrypoint: ["/bin/sh", "-c"]
         command:
@@ -394,8 +332,8 @@ services:
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
                   --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-2:8546 \
-                  --l2.auth=http://taiko-geth-2:8551 \
+                  --l2.ws=ws://taiko-nethermind-2:8548 \
+                  --l2.auth=http://taiko-nethermind-2:8552 \
                   --preconfirmation.serverPort=1235 \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
@@ -405,6 +343,8 @@ services:
                   --p2p.advertise.ip=taiko-driver-2 \
                   --metrics=true \
                   --verbosity=4 \
+                  --pacayaInbox=$${PACAYA_INBOX} \
+                  --shastaInbox=$${SHASTA_INBOX} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -427,18 +367,21 @@ services:
             logs_enabled: "true"
             custom_operator: "dev"
             custom_network: "dev"
-        # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-2
+            - .env.stack-2-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
             transfer-funds:
                 condition: service_completed_successfully
-            taiko-geth-2:
+            taiko-nethermind-2:
                 condition: service_started
             taiko-driver-2:
+                condition: service_started
+            web3signer_l1:
+                condition: service_started
+            web3signer_l2:
                 condition: service_started
         profiles:
             - stack
@@ -449,7 +392,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            - taiko-geth-1
+            - taiko-nethermind-1
             - taiko-driver-1
         volumes:
             - ./static/spamoor:/config
@@ -458,7 +401,7 @@ services:
         entrypoint:
             - ./spamoor-daemon
         command:
-            - "--rpchost=http://taiko-geth-1:8545"
+            - "--rpchost=http://taiko-nethermind-1:8547"
             - "--startup-spammer=/config/scenario-configs.yml"
             - "--privkey=${OPERATOR_1_PRIVATE_KEY}"
         networks:
@@ -497,7 +440,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            taiko-geth-1:
+            taiko-nethermind-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -524,7 +467,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            taiko-geth-1:
+            taiko-nethermind-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -537,10 +480,10 @@ services:
         environment:
             MICROSERVICE_SC_VERIFIER_URL: "http://l2-blockscout-verif:${VERIFIER_PORT:-8050}/api"
             ECTO_USE_SSL: "false"
-            ETHEREUM_JSONRPC_HTTP_URL: "http://taiko-geth-1:8545/"
+            ETHEREUM_JSONRPC_HTTP_URL: "http://taiko-nethermind-1:8547/"
             DATABASE_URL: "postgresql://postgres:MyPassword1!@l2-blockscout-postgres:5432/blockscout"
-            ETHEREUM_JSONRPC_VARIANT: geth
-            ETHEREUM_JSONRPC_TRACE_URL: "http://taiko-geth-1:8545/"
+            ETHEREUM_JSONRPC_VARIANT: nethermind
+            ETHEREUM_JSONRPC_TRACE_URL: "http://taiko-nethermind-1:8547/"
             SUBNETWORK: Taiko
             API_V2_ENABLED: "true"
             PORT: "${BLOCKSCOUT_PORT:-4000}"
@@ -593,7 +536,7 @@ services:
             NEXT_PUBLIC_API_PROTOCOL: http
             NEXT_PUBLIC_API_HOST: "${BLOCKSCOUT_API_HOST:-localhost}:${BLOCKSCOUT_PORT:-4000}"
             NEXT_PUBLIC_USE_NEXT_JS_PROXY: "false"
-            NEXT_PUBLIC_NETWORK_RPC_URL: "http://taiko-geth-1:8545"
+            NEXT_PUBLIC_NETWORK_RPC_URL: "http://taiko-nethermind-1:8547"
             NEXT_PUBLIC_IS_TESTNET: "true"
             NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL: ws
             NEXT_PUBLIC_APP_PORT: "${BLOCKSCOUT_FRONTEND_PORT:-3001}"
@@ -608,11 +551,12 @@ services:
             - blockscout
 
 volumes:
-    taiko-geth-data-1:
-    taiko-geth-data-2:
+    taiko-nethermind-data-1:
+    taiko-nethermind-data-2:
     bootnode-data:
     blockscout-postgres-data:
 
 networks:
     preconf:
         driver: bridge
+

@@ -1,3 +1,7 @@
 .env
 .env*.bak
 
+.idea/
+
+node_modules/
+deployments/*.json
