@@ -111,7 +111,7 @@ parse_arguments() {
                 shift
                 ;;
             --l1-blockscout)
-                enable_l1_blockscout="true"
+                enable_l1_blockscout="$2"
                 shift
                 ;;
             --l2-blockscout)
