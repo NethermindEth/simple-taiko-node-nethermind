@@ -133,7 +133,7 @@ services:
             - --rpc.eth-proof-window=1209600
             - --devnet-uzen-timestamp=1864670179
             - --p2p-secret-key=/node-keys/node-key
-            - --bootnodes=enode://09c3f502ca7e83c1abaf6e44a2a15f2b30579ec187a6662685330e54d173ea0df02f878fb3d0332bd107f1e542edb6b1dc9828bd4795224953b6ec9dacd3a862@alethia-reth-2:30303 
+            - --trusted-peers=enode://09c3f502ca7e83c1abaf6e44a2a15f2b30579ec187a6662685330e54d173ea0df02f878fb3d0332bd107f1e542edb6b1dc9828bd4795224953b6ec9dacd3a862@alethia-reth-2:30303 
             - --authrpc.addr=0.0.0.0
             - --authrpc.jwtsecret=/jwtsecret.hex
             - --ipcpath=/data/alethia-reth/reth.ipc
@@ -320,7 +320,7 @@ services:
             - --rpc.eth-proof-window=1209600
             - --devnet-uzen-timestamp=1864670179
             - --p2p-secret-key=/node-keys/node-key
-            - --bootnodes=enode://6b952475db65fde2ba6edd43c1285fa15e57b7842bcab1a690876049c8dc2e77577850bddcabdd8852da719c476ee626a58d2e8b66ff37bb75af60582a72acf8@alethia-reth-1:30303
+            - --trusted-peers=enode://6b952475db65fde2ba6edd43c1285fa15e57b7842bcab1a690876049c8dc2e77577850bddcabdd8852da719c476ee626a58d2e8b66ff37bb75af60582a72acf8@alethia-reth-1:30303
             - --authrpc.addr=0.0.0.0
             - --authrpc.jwtsecret=/jwtsecret.hex
             - --ipcpath=/data/alethia-reth/reth.ipc
