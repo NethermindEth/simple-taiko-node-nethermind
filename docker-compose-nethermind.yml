@@ -47,7 +47,7 @@ services:
             - preconf
         env_file:
             - .env
-            - .env.stack-1
+            - ./env-stack/.env.stack-1-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         profiles:
@@ -135,7 +135,7 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-1
+            - ./env-stack/.env.stack-1-nmc
         depends_on:
             - taiko-nethermind-1
             - p2p-bootnode
@@ -185,7 +185,7 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-1-nmc
+            - ./env-stack/.env.stack-1-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
@@ -320,7 +320,7 @@ services:
             custom_network: "dev"
         env_file:
             - .env
-            - .env.stack-2
+            - ./env-stack/.env.stack-2-nmc
         depends_on:
             - taiko-nethermind-2
             - p2p-bootnode
@@ -369,7 +369,7 @@ services:
             custom_network: "dev"
         env_file:
             - .env
-            - .env.stack-2-nmc
+            - ./env-stack/.env.stack-2-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:

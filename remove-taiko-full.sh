@@ -9,6 +9,7 @@ readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
 readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
+readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
 
 # Default argument values
 remove_l1_devnet=""
@@ -192,11 +193,15 @@ remove_l2_stack() {
         docker compose -f "$COMPOSE_FILE_NETHERMIND" \
             --profile stack --profile blockscout --profile spammer \
             down --remove-orphans 2>&1 || true
+        docker compose -f "$COMPOSE_FILE_RETH" \
+            --profile stack --profile deploy --profile blockscout --profile spammer \
+            down --remove-orphans 2>&1 || true
 
         # Hard fallback: SIGKILL then force-remove all known containers by name
         # in case docker compose down missed any (project-name mismatch, profile
         # omissions, or containers that ignore SIGTERM)
         local known_containers=(
+            alethia-reth-1 alethia-reth-2
             taiko-nethermind-1 taiko-nethermind-2
             taiko-geth-1 taiko-geth-2
             taiko-driver-1 taiko-driver-2
@@ -255,9 +260,14 @@ remove_docker_volumes() {
         docker compose -f "$COMPOSE_FILE_NETHERMIND" \
             --profile stack --profile blockscout --profile spammer \
             down -v --remove-orphans 2>&1 || true
+        docker compose -f "$COMPOSE_FILE_RETH" \
+            --profile stack --profile blockscout --profile spammer \
+            down -v --remove-orphans 2>&1 || true
 
         # Hard fallback: remove known named volumes that compose may have missed
         local known_volumes=(
+            simple-taiko-node-nethermind_alethia-reth-data-1
+            simple-taiko-node-nethermind_alethia-reth-data-2
             simple-taiko-node-nethermind_taiko-nethermind-data-1
             simple-taiko-node-nethermind_taiko-nethermind-data-2
             simple-taiko-node-nethermind_taiko-geth-data-1

@@ -10,6 +10,7 @@ readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
 readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
+readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
 
 readonly NETHERMIND_IMAGE="nethermindeth/nethermind:master"
 readonly STATIC_DIR="./static"
@@ -659,6 +660,7 @@ start_l2_stack() {
     case "$client_choice" in
         "nethermind") compose_file="$COMPOSE_FILE_NETHERMIND" ;;
         "geth")       compose_file="$COMPOSE_FILE_GETH" ;;
+        "alethia-reth")       compose_file="$COMPOSE_FILE_RETH" ;;
     esac
 
     # Build profile arguments — stack profile is required for both clients
@@ -710,6 +712,7 @@ check_l2_health() {
     case "$client_choice" in
         "nethermind") rpc_port=8547 ;;
         "geth")       rpc_port=8547 ;;
+        "alethia-reth")       rpc_port=8547 ;;
     esac
 
     local attempts=0
@@ -867,15 +870,16 @@ main() {
             client_raw=$(prompt_client_selection)
             case "$client_raw" in
                 1|"geth") client="geth" ;;
+                2|"alethia-reth") client="alethia-reth" ;;
                 *)         client="nethermind" ;;
             esac
         fi
     fi
 
     case "$client" in
-        "nethermind"|"geth") ;;
+        "nethermind"|"geth"|"alethia-reth") ;;
         *)
-            log_error "Invalid client: $client (must be nethermind or geth)"
+            log_error "Invalid client: $client (must be nethermind, geth, or alethia-reth)"
             exit 1
             ;;
     esac
@@ -1030,7 +1034,7 @@ main() {
     # ── Phase 2 pre-step: fork timestamp (must precede genesis hash computation
     #    because the chainspec embeds the shasta timestamp) ─────────────────────
     log_info "Setting fork timestamp..."
-    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}"
+    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}" "${UPDATE_SHASTA_FORK_TIME:-true}" "${UPDATE_UZEN_FORK_TIME:-true}"
     set -a; source "$ENV_FILE"; set +a
 
     # ── Phase 2: Contract deployment ──────────────────────────────────────────

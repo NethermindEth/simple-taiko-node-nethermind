@@ -81,24 +81,23 @@ services:
             - preconf
         env_file:
             - .env
-            - ./env-stack/.env.stack-1
+            - ./env-stack/.env.stack-1-reth
         extra_hosts:
             - "host.docker.internal:host-gateway"
         profiles:
             - stack
 
-    taiko-geth-1:
-        container_name: taiko-geth-1
-        image: ${TAIKO_GETH_IMAGE}
+    alethia-reth-1:
+        container_name: alethia-reth-1
+        image: ${ALETHIA_RETH_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - taiko-geth-data-1:/data/taiko-geth
-            - ./geth-1-nodekey:/data/taiko-geth/geth/nodekey:ro
-            - ./geth-1-config.toml:/data/taiko-geth/geth/config.toml:ro
+            - alethia-reth-data-1:/data/alethia-reth
+            - ./alethia-reth-1-nodekey:/node-keys/node-key:ro
         ports:
             - "${PORT_L2_EXECUTION_ENGINE_1_METRICS}:6060"
             - "${PORT_L2_EXECUTION_ENGINE_1_HTTP}:8545"
@@ -110,48 +109,33 @@ services:
             - preconf
         labels:
             metrics_enabled: "true"
-            #metrics_port: "6060"
             logs_enabled: "true"
             custom_operator: "dev"
             custom_network: "dev"
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
-            - '--cache=4096'
-            - '--maxpeers=100'
-            - '--maxpendpeers=50'
-            - '--txpool.globalslots=10000'
-            - '--txpool.globalqueue=10000'
-            - '--rpc.batch-request-limit=5000'
-            - '--rpc.batch-response-max-size=50000000'
-            - '--rpc.txfeecap=10'
-            - '--gcmode=archive'
-            - '--datadir=/data/taiko-geth'
-            - '--networkid=${L2_CHAIN_ID}'
-            - '--port=30303'
-            - '--nodiscover'
-            - '--metrics'
-            - '--metrics.addr=0.0.0.0'
-            #- '--metrics.port=6060'
-            - '--http'
-            - '--http.addr=0.0.0.0'
-            - '--http.vhosts=*'
-            - '--http.corsdomain=*'
-            - '--ws'
-            - '--ws.addr=0.0.0.0'
-            - '--ws.origins=*'
-            - '--authrpc.addr=0.0.0.0'
-            - '--authrpc.port=8551'
-            - '--authrpc.vhosts=*'
-            - '--authrpc.jwtsecret=/jwtsecret.hex'
-            - '--allow-insecure-unlock'
-            - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--taiko'
-            - '--config=/data/taiko-geth/geth/config.toml'
-            - '--nodekey=/data/taiko-geth/geth/nodekey'
-            - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+            - ./alethia-reth
+            - node
+            - --http
+            - --http.addr=0.0.0.0
+            - --http.api=eth,net,debug,trace,rpc
+            - --ws
+            - --ws.addr=0.0.0.0
+            - --chain=devnet
+            - --datadir=/data/alethia-reth
+            - --log.file.directory=/data/alethia-reth/logs
+            - --metrics=0.0.0.0:6060
+            - --color=never
+            - --enable-discv5-discovery
+            - --engine.persistence-threshold=0
+            - --engine.memory-block-buffer-target=0
+            - --rpc.eth-proof-window=1209600
+            - --devnet-uzen-timestamp=1864670179
+            - --p2p-secret-key=/node-keys/node-key
+            - --authrpc.addr=0.0.0.0
+            - --authrpc.jwtsecret=/jwtsecret.hex
+            - --ipcpath=/data/alethia-reth/reth.ipc
         profiles:
             - stack
 
@@ -182,9 +166,9 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - ./env-stack/.env.stack-1
+            - ./env-stack/.env.stack-1-reth
         depends_on:
-            - taiko-geth-1
+            - alethia-reth-1
             - p2p-bootnode
         entrypoint: ["/bin/sh", "-c"]
         command:
@@ -194,8 +178,8 @@ services:
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
                   --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-1:8546 \
-                  --l2.auth=http://taiko-geth-1:8551 \
+                  --l2.ws=ws://alethia-reth-1:8546 \
+                  --l2.auth=http://alethia-reth-1:8551 \
                   --preconfirmation.serverPort=1235 \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
@@ -204,8 +188,9 @@ services:
                   --p2p.disable=false \
                   --metrics=true \
                   --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
                   --p2p.advertise.ip=taiko-driver-1 \
                   --p2p.bootnodes=$$ENR
         profiles:
@@ -232,13 +217,13 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - ./env-stack/.env.stack-1
+            - ./env-stack/.env.stack-1-reth
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
             transfer-funds:
                 condition: service_completed_successfully
-            taiko-geth-1:
+            alethia-reth-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -287,18 +272,17 @@ services:
 
 ### stack #2
 
-    taiko-geth-2:
-        container_name: taiko-geth-2
-        image: ${TAIKO_GETH_IMAGE}
+    alethia-reth-2:
+        container_name: alethia-reth-2
+        image: ${ALETHIA_RETH_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro # Generate with `openssl rand -hex 32 | tr -d "\n" > jwtsecret.hex`
-            - taiko-geth-data-2:/data/taiko-geth
-            - ./geth-2-config.toml:/data/taiko-geth/geth/config.toml:ro
-            - ./geth-2-nodekey:/data/taiko-geth/geth/nodekey:ro
+            - alethia-reth-data-2:/data/alethia-reth
+            - ./alethia-reth-2-nodekey:/node-keys/node-key:ro
         ports:
             - "${PORT_L2_EXECUTION_ENGINE_2_METRICS}:6060"
             - "${PORT_L2_EXECUTION_ENGINE_2_HTTP}:8545"
@@ -317,41 +301,27 @@ services:
         env_file:
             - .env
         command:
-            - '--syncmode=snap'
-            - '--cache=4096'
-            - '--maxpeers=100'
-            - '--maxpendpeers=50'
-            - '--txpool.globalslots=10000'
-            - '--txpool.globalqueue=10000'
-            - '--rpc.batch-request-limit=5000'
-            - '--rpc.batch-response-max-size=50000000'
-            - '--rpc.txfeecap=10'
-            - '--gcmode=archive'
-            - '--datadir=/data/taiko-geth'
-            - '--networkid=${L2_CHAIN_ID}'
-            - '--port=30303'
-            - '--nodiscover'
-            - '--metrics'
-            - '--metrics.addr=0.0.0.0'
-            #- '--metrics.port=6060'
-            - '--http'
-            - '--http.addr=0.0.0.0'
-            - '--http.vhosts=*'
-            - '--http.corsdomain=*'
-            - '--ws'
-            - '--ws.addr=0.0.0.0'
-            - '--ws.origins=*'
-            - '--authrpc.addr=0.0.0.0'
-            - '--authrpc.port=8551'
-            - '--authrpc.vhosts=*'
-            - '--authrpc.jwtsecret=/jwtsecret.hex'
-            - '--allow-insecure-unlock'
-            - '--http.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--ws.api=admin,debug,eth,net,web3,txpool,miner,taiko'
-            - '--taiko'
-            - '--config=/data/taiko-geth/geth/config.toml'
-            - '--nodekey=/data/taiko-geth/geth/nodekey'
-            - '--taiko.internal-shasta-time=${TAIKO_INTERNAL_SHASTA_TIME}'
+            - ./alethia-reth
+            - node
+            - --http
+            - --http.addr=0.0.0.0
+            - --http.api=eth,net,debug,trace,rpc
+            - --ws
+            - --ws.addr=0.0.0.0
+            - --chain=devnet
+            - --datadir=/data/alethia-reth
+            - --log.file.directory=/data/alethia-reth/logs
+            - --metrics=0.0.0.0:6060
+            - --color=never
+            - --enable-discv5-discovery
+            - --engine.persistence-threshold=0
+            - --engine.memory-block-buffer-target=0
+            - --rpc.eth-proof-window=1209600
+            - --devnet-uzen-timestamp=1864670179
+            - --p2p-secret-key=/node-keys/node-key
+            - --authrpc.addr=0.0.0.0
+            - --authrpc.jwtsecret=/jwtsecret.hex
+            - --ipcpath=/data/alethia-reth/reth.ipc
         profiles:
             - stack
 
@@ -382,9 +352,9 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - ./env-stack/.env.stack-2
+            - ./env-stack/.env.stack-2-reth
         depends_on:
-            - taiko-geth-2
+            - alethia-reth-2
             - p2p-bootnode
         entrypoint: ["/bin/sh", "-c"]
         command:
@@ -394,10 +364,13 @@ services:
                   --l1.ws=$${L1_ENDPOINT_WS} \
                   --l1.beacon=$${L1_BEACON_HTTP} \
                   --jwtSecret=/jwtsecret.hex \
-                  --l2.ws=ws://taiko-geth-2:8546 \
-                  --l2.auth=http://taiko-geth-2:8551 \
+                  --l2.ws=ws://alethia-reth-2:8546 \
+                  --l2.auth=http://alethia-reth-2:8551 \
                   --preconfirmation.serverPort=1235 \
                   --p2p.priv.path=/p2psecret.hex \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
                   --p2p.useragent=taiko \
@@ -430,13 +403,13 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - ./env-stack/.env.stack-2
+            - ./env-stack/.env.stack-2-reth
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
             transfer-funds:
                 condition: service_completed_successfully
-            taiko-geth-2:
+            alethia-reth-2:
                 condition: service_started
             taiko-driver-2:
                 condition: service_started
@@ -449,7 +422,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            - taiko-geth-1
+            - alethia-reth-1
             - taiko-driver-1
         volumes:
             - ./static/spamoor:/config
@@ -458,7 +431,7 @@ services:
         entrypoint:
             - ./spamoor-daemon
         command:
-            - "--rpchost=http://taiko-geth-1:8545"
+            - "--rpchost=http://alethia-reth-1:8545"
             - "--startup-spammer=/config/scenario-configs.yml"
             - "--privkey=${OPERATOR_1_PRIVATE_KEY}"
         networks:
@@ -497,7 +470,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            taiko-geth-1:
+            alethia-reth-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -524,7 +497,7 @@ services:
         restart: unless-stopped
         pull_policy: always
         depends_on:
-            taiko-geth-1:
+            alethia-reth-1:
                 condition: service_started
             taiko-driver-1:
                 condition: service_started
@@ -537,10 +510,10 @@ services:
         environment:
             MICROSERVICE_SC_VERIFIER_URL: "http://l2-blockscout-verif:${VERIFIER_PORT:-8050}/api"
             ECTO_USE_SSL: "false"
-            ETHEREUM_JSONRPC_HTTP_URL: "http://taiko-geth-1:8545/"
+            ETHEREUM_JSONRPC_HTTP_URL: "http://alethia-reth-1:8545/"
             DATABASE_URL: "postgresql://postgres:MyPassword1!@l2-blockscout-postgres:5432/blockscout"
             ETHEREUM_JSONRPC_VARIANT: geth
-            ETHEREUM_JSONRPC_TRACE_URL: "http://taiko-geth-1:8545/"
+            ETHEREUM_JSONRPC_TRACE_URL: "http://alethia-reth-1:8545/"
             SUBNETWORK: Taiko
             API_V2_ENABLED: "true"
             PORT: "${BLOCKSCOUT_PORT:-4000}"
@@ -593,7 +566,7 @@ services:
             NEXT_PUBLIC_API_PROTOCOL: http
             NEXT_PUBLIC_API_HOST: "${BLOCKSCOUT_API_HOST:-localhost}:${BLOCKSCOUT_PORT:-4000}"
             NEXT_PUBLIC_USE_NEXT_JS_PROXY: "false"
-            NEXT_PUBLIC_NETWORK_RPC_URL: "http://taiko-geth-1:8545"
+            NEXT_PUBLIC_NETWORK_RPC_URL: "http://alethia-reth-1:8545"
             NEXT_PUBLIC_IS_TESTNET: "true"
             NEXT_PUBLIC_API_WEBSOCKET_PROTOCOL: ws
             NEXT_PUBLIC_APP_PORT: "${BLOCKSCOUT_FRONTEND_PORT:-3001}"
@@ -608,8 +581,8 @@ services:
             - blockscout
 
 volumes:
-    taiko-geth-data-1:
-    taiko-geth-data-2:
+    alethia-reth-data-1:
+    alethia-reth-data-2:
     bootnode-data:
     blockscout-postgres-data:
 
