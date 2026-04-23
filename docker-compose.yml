@@ -59,7 +59,7 @@ services:
 
     p2p-bootnode:
         container_name: p2p-bootnode
-        image: nethswitchboard/bootnode-p2p:whitelist
+        image: nethermind/catalyst-p2p-bootnode:latest
         command:
             - p2p-boot-node
             - p2p-bootnode
