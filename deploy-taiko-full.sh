@@ -247,82 +247,6 @@ deploy_l1_devnet() {
     fi
 }
 
-# ─── Phase 2: Pacaya contract deployment ──────────────────────────────────────
-deploy_pacaya_contracts() {
-    local mode_choice="$1"
-
-    local output_file="${DEPLOYMENTS_DIR}/deploy_l1_pacaya.json"
-
-    if [[ -f "$output_file" ]]; then
-        log_info "Pacaya contracts already deployed ($output_file found), skipping"
-        return 0
-    fi
-
-    log_info "Deploying Pacaya contracts..."
-
-    local exit_status=0
-    local temp_output="/tmp/taiko_pacaya_deploy_output_$$"
-
-    if [[ "$mode_choice" == "debug" ]]; then
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up pacaya-deployer 2>&1 | tee "$temp_output"
-        exit_status=${PIPESTATUS[0]}
-    else
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up pacaya-deployer >"$temp_output" 2>&1 &
-        local deploy_pid=$!
-
-        show_progress $deploy_pid "Deploying Pacaya contracts..."
-
-        wait $deploy_pid
-        exit_status=$?
-    fi
-
-    if [[ $exit_status -ne 0 ]]; then
-        log_error "Pacaya contract deployment failed (exit code: $exit_status)"
-        if [[ "$mode_choice" == "silence" ]]; then
-            log_error "Re-run with --mode debug for full output"
-        fi
-        log_error "Output saved to: $temp_output"
-        return 1
-    fi
-
-    if [[ ! -f "$output_file" ]]; then
-        log_error "Deployment succeeded but $output_file not found"
-        log_error "Check deployer logs: docker logs pacaya-deployer"
-        return 1
-    fi
-
-    log_info "Extracting Pacaya contract addresses..."
-
-    local addr
-    addr=$(cat "$output_file" | jq -r '.automata_dcap_attestation') && update_env_var "$ENV_FILE" "PACAYA_AUTOMATA_DCAP_ATTESTATION" "$addr"
-    addr=$(cat "$output_file" | jq -r '.bridge')                    && update_env_var "$ENV_FILE" "PACAYA_BRIDGE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc1155_vault')             && update_env_var "$ENV_FILE" "PACAYA_ERC1155_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc20_vault')               && update_env_var "$ENV_FILE" "PACAYA_ERC20_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc721_vault')              && update_env_var "$ENV_FILE" "PACAYA_ERC721_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.forced_inclusion_store')    && update_env_var "$ENV_FILE" "PACAYA_FORCED_INCLUSION_STORE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.mainnet_taiko')             && update_env_var "$ENV_FILE" "PACAYA_MAINNET_TAIKO" "$addr"
-    addr=$(cat "$output_file" | jq -r '.op_geth_verifier')          && update_env_var "$ENV_FILE" "PACAYA_OP_GETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.op_verifier')               && update_env_var "$ENV_FILE" "PACAYA_OP_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.preconf_router')            && update_env_var "$ENV_FILE" "PACAYA_PRECONF_ROUTER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.preconf_whitelist')         && update_env_var "$ENV_FILE" "PACAYA_PRECONF_WHITELIST" "$addr"
-    addr=$(cat "$output_file" | jq -r '.proof_verifier')            && update_env_var "$ENV_FILE" "PACAYA_PROOF_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.prover_set')                && update_env_var "$ENV_FILE" "PACAYA_PROVER_SET" "$addr"
-    addr=$(cat "$output_file" | jq -r '.risc0_reth_verifier')       && update_env_var "$ENV_FILE" "PACAYA_RISC0_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.rollup_address_resolver')   && update_env_var "$ENV_FILE" "PACAYA_ROLLUP_ADDRESS_RESOLVER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_geth_automata')         && update_env_var "$ENV_FILE" "PACAYA_SGX_GETH_AUTOMATA" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_geth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SGX_GETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_reth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SGX_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.shared_resolver')           && update_env_var "$ENV_FILE" "PACAYA_SHARED_RESOLVER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.signal_service')            && update_env_var "$ENV_FILE" "PACAYA_SIGNAL_SERVICE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sp1_reth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SP1_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko')                     && update_env_var "$ENV_FILE" "PACAYA_TAIKO" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko_token')               && update_env_var "$ENV_FILE" "PACAYA_TAIKO_TOKEN" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko_wrapper')             && update_env_var "$ENV_FILE" "PACAYA_TAIKO_WRAPPER" "$addr"
-
-    log_success "Pacaya contracts deployed and addresses saved"
-    return 0
-}
-
 # ─── Phase 2: Shasta contract deployment ──────────────────────────────────────
 deploy_shasta_contracts() {
     local mode_choice="$1"
@@ -380,6 +304,8 @@ deploy_shasta_contracts() {
     addr=$(cat "$output_file" | jq -r '.shared_resolver')                    && update_env_var "$ENV_FILE" "SHASTA_SHARED_RESOLVER" "$addr"
     addr=$(cat "$output_file" | jq -r '.shasta_inbox')                       && update_env_var "$ENV_FILE" "SHASTA_SHASTA_INBOX" "$addr"
     addr=$(cat "$output_file" | jq -r '.signal_service')                     && update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$addr"
+    addr=$(cat "$output_file" | jq -r '.preconf_whitelist')                  && update_env_var "$ENV_FILE" "SHASTA_PRECONF_WHITELIST" "$addr"
+    addr=$(cat "$output_file" | jq -r '.taiko_token')                        && update_env_var "$ENV_FILE" "SHASTA_TAIKO_TOKEN" "$addr"
 
     log_success "Shasta contracts deployed and addresses saved"
     return 0
@@ -1058,11 +984,6 @@ main() {
 
         # Reload env so deployer containers inherit the updated L2_GENESIS_HASH
         set -a; source "$ENV_FILE"; set +a
-
-        if ! deploy_pacaya_contracts "$mode"; then
-            log_error "Pacaya contract deployment failed"
-            exit 1
-        fi
 
         if ! deploy_shasta_contracts "$mode"; then
             log_error "Shasta contract deployment failed"

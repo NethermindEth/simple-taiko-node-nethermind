@@ -37,22 +37,6 @@ services:
         profiles:
             - stack
 
-    fork-switch:
-        container_name: fork-switch
-        build:
-            context: ./shasta-pacay-transition
-            dockerfile: Dockerfile
-        restart: on-failure
-        networks:
-            - preconf
-        env_file:
-            - .env
-            - ./env-stack/.env.stack-1-nmc
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - stack
-
     taiko-nethermind-1:
         container_name: taiko-nethermind-1
         image: nethermindeth/nethermind:master
