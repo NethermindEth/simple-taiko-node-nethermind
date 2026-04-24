@@ -1,22 +1,5 @@
 # This is the docker-compose file with L2 for the Kurtosis preconfirm devnet package.
-services:
-    pacaya-deployer:
-        container_name: pacaya-deployer
-        image: ${TAIKO_PROTOCOL_PACAYA_IMAGE}
-        volumes:
-            - ./script:/deployer:rw
-            - ./deployments:/deployments:rw
-        env_file:
-            - .env
-        command:
-            - /deployer/pacaya-deployer.sh
-        networks:
-            - preconf
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - deploy
-    
+services:  
     shasta-deployer:
         container_name: shasta-deployer
         image: ${TAIKO_PROTOCOL_SHASTA_IMAGE}
@@ -68,22 +51,6 @@ services:
             - preconf
         volumes:
             - bootnode-data:/tmp:rw
-        profiles:
-            - stack
-
-    fork-switch:
-        container_name: fork-switch
-        build:
-            context: ./shasta-pacay-transition
-            dockerfile: Dockerfile
-        restart: on-failure
-        networks:
-            - preconf
-        env_file:
-            - .env
-            - ./env-stack/.env.stack-1
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         profiles:
             - stack
 

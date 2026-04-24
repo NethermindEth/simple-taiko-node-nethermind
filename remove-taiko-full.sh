@@ -206,7 +206,7 @@ remove_l2_stack() {
             taiko-geth-1 taiko-geth-2
             taiko-driver-1 taiko-driver-2
             catalyst-node-1 catalyst-node-2
-            fork-switch transfer-funds p2p-bootnode
+            transfer-funds p2p-bootnode
             web3signer_l1 web3signer_l2
             pacaya-deployer shasta-deployer
             l2-tx-spammer
