@@ -104,6 +104,7 @@ services:
             - --authrpc.addr=0.0.0.0
             - --authrpc.jwtsecret=/jwtsecret.hex
             - --ipcpath=/data/alethia-reth/reth.ipc
+            - --txpool.max-account-slots=1000000
         profiles:
             - stack
 
@@ -291,6 +292,7 @@ services:
             - --authrpc.addr=0.0.0.0
             - --authrpc.jwtsecret=/jwtsecret.hex
             - --ipcpath=/data/alethia-reth/reth.ipc
+            - --txpool.max-account-slots=1000000
         profiles:
             - stack
 
