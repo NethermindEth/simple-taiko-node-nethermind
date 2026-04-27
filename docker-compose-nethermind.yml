@@ -39,7 +39,7 @@ services:
 
     taiko-nethermind-1:
         container_name: taiko-nethermind-1
-        image: nethermindeth/nethermind:master
+        image: ${NETHERMIND_CLIENT_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
@@ -142,8 +142,9 @@ services:
                   --p2p.advertise.ip=taiko-driver-1 \
                   --metrics=true \
                   --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -225,7 +226,7 @@ services:
 
     taiko-nethermind-2:
         container_name: taiko-nethermind-2
-        image: nethermindeth/nethermind:master
+        image: ${NETHERMIND_CLIENT_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
@@ -327,8 +328,9 @@ services:
                   --p2p.advertise.ip=taiko-driver-2 \
                   --metrics=true \
                   --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack

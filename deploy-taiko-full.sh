@@ -438,6 +438,9 @@ compute_genesis_hash() {
     local hex_timestamp
     printf -v hex_timestamp '0x%x' "${TAIKO_INTERNAL_SHASTA_TIME:-0}"
 
+    local hex_unzen_timestamp
+    printf -v hex_unzen_timestamp '0x%x' "${UZEN_FORK_TIME:-0}"
+
     local full_genesis_file
     full_genesis_file=$(mktemp /tmp/taiko-genesis-full.XXXXXX.json)
 
@@ -449,6 +452,7 @@ compute_genesis_hash() {
         --argjson block "$genesis_block" \
         --argjson chainId "${L2_CHAIN_ID:-167001}" \
         --arg hexTs "$hex_timestamp" \
+        --arg hexUnzenTs "$hex_unzen_timestamp" \
         '{
           config: {
             chainId:             $chainId,
@@ -466,8 +470,13 @@ compute_genesis_hash() {
             ontakeBlock:         0,
             pacayaBlock:         1,
             shastaTimestamp:     $hexTs,
+            unzenTimestamp:      $hexUnzenTs,
             feeCollector:        "0x0000000000000000000000000000000000000000",
+            depositContractAddress: "0x0000000000000000000000000000000000000000",
             shanghaiTime:        0,
+            cancunTime: 0,
+            pragueTime: 0, 
+            osakaTime: 0,
             cancunTime:          null,
             taiko:               true
           },
@@ -501,6 +510,7 @@ compute_genesis_hash() {
 
     if ! jq --from-file "$gen2spec_file" "$full_genesis_file" \
             | jq --arg hexTs "$hex_timestamp" '.engine.Taiko.shastaTimestamp = $hexTs' \
+            | jq --arg hexUnzenTs "$hex_unzen_timestamp" '.engine.Taiko.unzenTimestamp = $hexUnzenTs' \
             > "$CHAINSPEC_FILE"; then
         log_error "Chainspec conversion failed — check gen2spec output above"
         rm -f "$gen2spec_file" "$full_genesis_file"
