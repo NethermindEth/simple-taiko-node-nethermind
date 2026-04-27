@@ -12,7 +12,7 @@ readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
 readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
 
-readonly NETHERMIND_IMAGE="nethermindeth/nethermind:master"
+readonly NETHERMIND_IMAGE="${NETHERMIND_IMAGE:-nethermindeth/nethermind:taiko-unzen}"
 readonly STATIC_DIR="./static"
 readonly CHAINSPEC_FILE="${STATIC_DIR}/taiko-shasta-chainspec.json"
 readonly GENESIS_FILE="${STATIC_DIR}/genesis.json"
@@ -474,10 +474,9 @@ compute_genesis_hash() {
             feeCollector:        "0x0000000000000000000000000000000000000000",
             depositContractAddress: "0x0000000000000000000000000000000000000000",
             shanghaiTime:        0,
-            cancunTime: 0,
-            pragueTime: 0, 
-            osakaTime: 0,
-            cancunTime:          null,
+            cancunTime:          0,
+            pragueTime:          0,
+            osakaTime:           0,
             taiko:               true
           },
           alloc:        $alloc[0],
