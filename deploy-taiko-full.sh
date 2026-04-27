@@ -439,7 +439,7 @@ compute_genesis_hash() {
     printf -v hex_timestamp '0x%x' "${TAIKO_INTERNAL_SHASTA_TIME:-0}"
 
     local hex_unzen_timestamp
-    printf -v hex_unzen_timestamp '0x%x' "${UZEN_FORK_TIME:-0}"
+    printf -v hex_unzen_timestamp '0x%x' "${UNZEN_FORK_TIME:-0}"
 
     local full_genesis_file
     full_genesis_file=$(mktemp /tmp/taiko-genesis-full.XXXXXX.json)
@@ -970,7 +970,7 @@ main() {
     # ── Phase 2 pre-step: fork timestamp (must precede genesis hash computation
     #    because the chainspec embeds the shasta timestamp) ─────────────────────
     log_info "Setting fork timestamp..."
-    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}" "${UPDATE_SHASTA_FORK_TIME:-true}" "${UPDATE_UZEN_FORK_TIME:-true}"
+    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}" "${UPDATE_SHASTA_FORK_TIME:-true}" "${UPDATE_UNZEN_FORK_TIME:-true}"
     set -a; source "$ENV_FILE"; set +a
 
     # ── Phase 2: Contract deployment ──────────────────────────────────────────

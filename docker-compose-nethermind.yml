@@ -144,7 +144,7 @@ services:
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
                   --taikoAnchor=$${TAIKO_ANCHOR} \
-                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -330,7 +330,7 @@ services:
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
                   --taikoAnchor=$${TAIKO_ANCHOR} \
-                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack

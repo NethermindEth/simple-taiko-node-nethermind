@@ -262,12 +262,12 @@ configure_network_params() {
 
 # ─── Fork timestamp ──────────────────────────────────────────────────────────
 # Calculate and update fork timestamp in .env
-# Usage: update_fork_timestamp <env_file> [buffer_seconds] [update_shasta] [update_uzen]
+# Usage: update_fork_timestamp <env_file> [buffer_seconds] [update_shasta] [update_unzen]
 update_fork_timestamp() {
     local env_file="$1"
     local buffer="${2:-120}"
     local update_shasta="${3:-true}"
-    local update_uzen="${4:-true}"
+    local update_unzen="${4:-true}"
     local last_fork_time=$(date +%s)
     
     if [[ "$update_shasta" == "true" ]]; then
@@ -287,19 +287,19 @@ update_fork_timestamp() {
         log_success "Shasta fork timestamp updated"
     fi
 
-    if [[ "$update_uzen" == "true" ]]; then
-        local uzen_timestamp=$(( last_fork_time + buffer ))
-        last_fork_time=$uzen_timestamp
+    if [[ "$update_unzen" == "true" ]]; then
+        local unzen_timestamp=$(( last_fork_time + buffer ))
+        last_fork_time=$unzen_timestamp
 
         if [[ "$(uname)" == "Darwin" ]]; then
-            readable_time=$(date -r "$uzen_timestamp" '+%Y-%m-%d %H:%M:%S')
+            readable_time=$(date -r "$unzen_timestamp" '+%Y-%m-%d %H:%M:%S')
         else
-            readable_time=$(date -d "@$uzen_timestamp" '+%Y-%m-%d %H:%M:%S')
+            readable_time=$(date -d "@$unzen_timestamp" '+%Y-%m-%d %H:%M:%S')
         fi
 
-        log_info "Setting Uzen fork timestamp: $uzen_timestamp ($readable_time)"
-        update_env_var "$env_file" "UZEN_FORK_TIME" "$uzen_timestamp"
-        log_success "Uzen fork timestamp updated"
+        log_info "Setting Unzen fork timestamp: $unzen_timestamp ($readable_time)"
+        update_env_var "$env_file" "UNZEN_FORK_TIME" "$unzen_timestamp"
+        log_success "Unzen fork timestamp updated"
     fi
 }
 

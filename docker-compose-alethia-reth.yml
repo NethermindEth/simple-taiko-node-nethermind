@@ -98,7 +98,7 @@ services:
             - --engine.persistence-threshold=0
             - --engine.memory-block-buffer-target=0
             - --rpc.eth-proof-window=1209600
-            - --devnet-uzen-timestamp=${UZEN_FORK_TIME}
+            - --devnet-unzen-timestamp=${UNZEN_FORK_TIME}
             - --p2p-secret-key=/node-keys/node-key
             - --trusted-peers=enode://09c3f502ca7e83c1abaf6e44a2a15f2b30579ec187a6662685330e54d173ea0df02f878fb3d0332bd107f1e542edb6b1dc9828bd4795224953b6ec9dacd3a862@alethia-reth-2:30303 
             - --authrpc.addr=0.0.0.0
@@ -159,7 +159,7 @@ services:
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
                   --taikoAnchor=$${TAIKO_ANCHOR} \
-                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.advertise.ip=taiko-driver-1 \
                   --p2p.bootnodes=$$ENR
         profiles:
@@ -286,7 +286,7 @@ services:
             - --engine.persistence-threshold=0
             - --engine.memory-block-buffer-target=0
             - --rpc.eth-proof-window=1209600
-            - --devnet-uzen-timestamp=${UZEN_FORK_TIME}
+            - --devnet-unzen-timestamp=${UNZEN_FORK_TIME}
             - --p2p-secret-key=/node-keys/node-key
             - --trusted-peers=enode://6b952475db65fde2ba6edd43c1285fa15e57b7842bcab1a690876049c8dc2e77577850bddcabdd8852da719c476ee626a58d2e8b66ff37bb75af60582a72acf8@alethia-reth-1:30303
             - --authrpc.addr=0.0.0.0
@@ -341,7 +341,7 @@ services:
                   --p2p.priv.path=/p2psecret.hex \
                   --inbox=$${SHASTA_INBOX} \
                   --taikoAnchor=$${TAIKO_ANCHOR} \
-                  --taiko.devnet-uzen-time=$${UZEN_FORK_TIME} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
                   --p2p.useragent=taiko \
