@@ -37,6 +37,71 @@ services:
         profiles:
             - stack
 
+    # One-shot helper that wires the two NMC instances as eth-protocol peers so they
+    # can snap-sync between each other. Required because NMCs auto-generate node keys
+    # and the chainspec ships no bootnode list for this local devnet — without this
+    # service Connected: 0 forever (see notes/2026/04-28-nmc-investigate-that-rpc/
+    # background-and-shura-log-analysis.md). Polls both eth-RPC endpoints, fetches each
+    # node's enode via admin_nodeInfo, and calls admin_addPeer on the other.
+    nmc-peering:
+        container_name: nmc-peering
+        image: curlimages/curl:8.10.1
+        restart: "no"
+        depends_on:
+            taiko-nethermind-1:
+                condition: service_started
+            taiko-nethermind-2:
+                condition: service_started
+        networks:
+            - preconf
+        entrypoint: ["/bin/sh", "-c"]
+        command:
+            - |
+                set -e
+                wait_rpc() {
+                  local url=$$1
+                  for i in $$(seq 1 60); do
+                    if curl -s -m 2 -X POST -H 'Content-Type: application/json' \
+                         --data '{"jsonrpc":"2.0","method":"net_version","params":[],"id":1}' \
+                         "$$url" >/dev/null 2>&1; then
+                      return 0
+                    fi
+                    sleep 2
+                  done
+                  echo "Timeout waiting for $$url" >&2
+                  return 1
+                }
+                get_enode() {
+                  curl -s -X POST -H 'Content-Type: application/json' \
+                    --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":1}' "$$1" \
+                    | sed -n 's/.*"enode":"\([^"]*\)".*/\1/p'
+                }
+                add_peer() {
+                  curl -s -X POST -H 'Content-Type: application/json' \
+                    --data "{\"jsonrpc\":\"2.0\",\"method\":\"admin_addPeer\",\"params\":[\"$$1\"],\"id\":1}" "$$2"
+                }
+                URL1=http://taiko-nethermind-1:8547
+                URL2=http://taiko-nethermind-2:8547
+                echo "Waiting for both NMC RPCs to come up..."
+                wait_rpc "$$URL1"
+                wait_rpc "$$URL2"
+                echo "Fetching enode URLs..."
+                ENODE1=$$(get_enode "$$URL1")
+                ENODE2=$$(get_enode "$$URL2")
+                echo "NMC1 enode: $$ENODE1"
+                echo "NMC2 enode: $$ENODE2"
+                # Replace 127.0.0.1/0.0.0.0 placeholders with the docker DNS hostname so the
+                # other side can actually reach the right interface.
+                ENODE1_FIXED=$$(echo "$$ENODE1" | sed 's|@[0-9.]*:|@taiko-nethermind-1:|')
+                ENODE2_FIXED=$$(echo "$$ENODE2" | sed 's|@[0-9.]*:|@taiko-nethermind-2:|')
+                echo "Adding NMC2 as peer of NMC1..."
+                add_peer "$$ENODE2_FIXED" "$$URL1"
+                echo "Adding NMC1 as peer of NMC2..."
+                add_peer "$$ENODE1_FIXED" "$$URL2"
+                echo "Peering wired. Exiting."
+        profiles:
+            - stack
+
     taiko-nethermind-1:
         container_name: taiko-nethermind-1
         image: ${NETHERMIND_CLIENT_IMAGE}
@@ -70,11 +135,12 @@ services:
             - '--config=none'
             - '--Init.ChainSpecPath=/taiko-shasta-chainspec.json'
             - '--Init.GenesisHash=${L2_GENESIS_HASH}'
+            - '--Init.DiscoveryEnabled=true'
             - '--jsonrpc-jwtsecretfile=/jwtsecret.hex'
             - '--JsonRpc.Enabled=true'
             - '--JsonRpc.Host=0.0.0.0'
             - '--JsonRpc.Port=8547'
-            - '--JsonRpc.EnabledModules=debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health'
+            - '--JsonRpc.EnabledModules=admin,debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health,taiko'
             - '--JsonRpc.EngineHost=0.0.0.0'
             - '--JsonRpc.EnginePort=8552'
             - '--JsonRpc.WebSocketsPort=8548'
@@ -82,9 +148,15 @@ services:
             - '--Metrics.ExposeHost=0.0.0.0'
             - '--Network.P2PPort=30304'
             - '--Network.DiscoveryPort=30304'
+            - '--Network.OnlyStaticPeers=false'
             - '--JsonRpc.MaxBatchResponseBodySize=120000000'
-            - '--Sync.FastSync=false'
-            - '--Sync.SnapSync=false'
+            - '--Sync.FastSync=true'
+            - '--Sync.SnapSync=true'
+            - '--Sync.PivotNumber=0'
+            - '--Sync.FastBlocks=true'
+            - '--Sync.DownloadHeadersInFastSync=true'
+            - '--Sync.DownloadBodiesInFastSync=true'
+            - '--Sync.DownloadReceiptsInFastSync=true'
             - '--Seq.MinLevel=Info'
             - '--Seq.ServerUrl=https://seq.nethermind.io'
             - '--Pruning.PruningBoundary=1000'
@@ -140,6 +212,9 @@ services:
                   --p2p.useragent=taiko \
                   --p2p.disable=false \
                   --p2p.advertise.ip=taiko-driver-1 \
+                  --p2p.sync \
+                  --p2p.checkPointSyncUrl=http://taiko-nethermind-2:8547 \
+                  --p2p.syncTimeout=30m \
                   --metrics=true \
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
@@ -257,11 +332,12 @@ services:
             - '--config=none'
             - '--Init.ChainSpecPath=/taiko-shasta-chainspec.json'
             - '--Init.GenesisHash=${L2_GENESIS_HASH}'
+            - '--Init.DiscoveryEnabled=true'
             - '--jsonrpc-jwtsecretfile=/jwtsecret.hex'
             - '--JsonRpc.Enabled=true'
             - '--JsonRpc.Host=0.0.0.0'
             - '--JsonRpc.Port=8547'
-            - '--JsonRpc.EnabledModules=debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health'
+            - '--JsonRpc.EnabledModules=admin,debug,eth,net,web3,txpool,rpc,subscribe,trace,personal,proof,parity,health,taiko'
             - '--JsonRpc.EngineHost=0.0.0.0'
             - '--JsonRpc.EnginePort=8552'
             - '--JsonRpc.WebSocketsPort=8548'
@@ -269,9 +345,15 @@ services:
             - '--Metrics.ExposeHost=0.0.0.0'
             - '--Network.P2PPort=30304'
             - '--Network.DiscoveryPort=30304'
+            - '--Network.OnlyStaticPeers=false'
             - '--JsonRpc.MaxBatchResponseBodySize=120000000'
-            - '--Sync.FastSync=false'
-            - '--Sync.SnapSync=false'
+            - '--Sync.FastSync=true'
+            - '--Sync.SnapSync=true'
+            - '--Sync.PivotNumber=0'
+            - '--Sync.FastBlocks=true'
+            - '--Sync.DownloadHeadersInFastSync=true'
+            - '--Sync.DownloadBodiesInFastSync=true'
+            - '--Sync.DownloadReceiptsInFastSync=true'
             - '--Seq.MinLevel=Info'
             - '--Seq.ServerUrl=https://seq.nethermind.io'
             - '--Pruning.PruningBoundary=1000'
@@ -326,6 +408,9 @@ services:
                   --p2p.useragent=taiko \
                   --p2p.disable=false \
                   --p2p.advertise.ip=taiko-driver-2 \
+                  --p2p.sync \
+                  --p2p.checkPointSyncUrl=http://taiko-nethermind-1:8547 \
+                  --p2p.syncTimeout=30m \
                   --metrics=true \
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
