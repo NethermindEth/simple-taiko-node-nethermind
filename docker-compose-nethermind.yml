@@ -150,13 +150,13 @@ services:
             - '--Network.DiscoveryPort=30304'
             - '--Network.OnlyStaticPeers=false'
             - '--JsonRpc.MaxBatchResponseBodySize=120000000'
-            - '--Sync.FastSync=true'
-            - '--Sync.SnapSync=true'
-            - '--Sync.PivotNumber=0'
-            - '--Sync.FastBlocks=true'
-            - '--Sync.DownloadHeadersInFastSync=true'
-            - '--Sync.DownloadBodiesInFastSync=true'
-            - '--Sync.DownloadReceiptsInFastSync=true'
+            # Keep FullSync for this local devnet: both NMCs start at genesis and grow with
+            # Catalyst-produced blocks via Engine API; there is no remote synced peer for
+            # a snap pivot to come from, so leaving snap on causes them to deadlock in
+            # UpdatingPivot. The cross-peering helper still gives them eth/68 connectivity
+            # for block-level sync if one falls behind.
+            - '--Sync.FastSync=false'
+            - '--Sync.SnapSync=false'
             - '--Seq.MinLevel=Info'
             - '--Seq.ServerUrl=https://seq.nethermind.io'
             - '--Pruning.PruningBoundary=1000'
@@ -212,9 +212,6 @@ services:
                   --p2p.useragent=taiko \
                   --p2p.disable=false \
                   --p2p.advertise.ip=taiko-driver-1 \
-                  --p2p.sync \
-                  --p2p.checkPointSyncUrl=http://taiko-nethermind-2:8547 \
-                  --p2p.syncTimeout=30m \
                   --metrics=true \
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
@@ -347,13 +344,13 @@ services:
             - '--Network.DiscoveryPort=30304'
             - '--Network.OnlyStaticPeers=false'
             - '--JsonRpc.MaxBatchResponseBodySize=120000000'
-            - '--Sync.FastSync=true'
-            - '--Sync.SnapSync=true'
-            - '--Sync.PivotNumber=0'
-            - '--Sync.FastBlocks=true'
-            - '--Sync.DownloadHeadersInFastSync=true'
-            - '--Sync.DownloadBodiesInFastSync=true'
-            - '--Sync.DownloadReceiptsInFastSync=true'
+            # Keep FullSync for this local devnet: both NMCs start at genesis and grow with
+            # Catalyst-produced blocks via Engine API; there is no remote synced peer for
+            # a snap pivot to come from, so leaving snap on causes them to deadlock in
+            # UpdatingPivot. The cross-peering helper still gives them eth/68 connectivity
+            # for block-level sync if one falls behind.
+            - '--Sync.FastSync=false'
+            - '--Sync.SnapSync=false'
             - '--Seq.MinLevel=Info'
             - '--Seq.ServerUrl=https://seq.nethermind.io'
             - '--Pruning.PruningBoundary=1000'
@@ -408,9 +405,6 @@ services:
                   --p2p.useragent=taiko \
                   --p2p.disable=false \
                   --p2p.advertise.ip=taiko-driver-2 \
-                  --p2p.sync \
-                  --p2p.checkPointSyncUrl=http://taiko-nethermind-1:8547 \
-                  --p2p.syncTimeout=30m \
                   --metrics=true \
                   --verbosity=4 \
                   --inbox=$${SHASTA_INBOX} \
