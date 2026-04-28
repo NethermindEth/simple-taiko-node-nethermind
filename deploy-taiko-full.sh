@@ -12,7 +12,6 @@ readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
 readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
 
-readonly NETHERMIND_IMAGE="${NETHERMIND_IMAGE:-nethermindeth/nethermind:taiko-unzen}"
 readonly STATIC_DIR="./static"
 readonly CHAINSPEC_FILE="${STATIC_DIR}/taiko-shasta-chainspec.json"
 readonly GENESIS_FILE="${STATIC_DIR}/genesis.json"
@@ -525,12 +524,14 @@ compute_genesis_hash() {
 
     log_success "Chainspec written to $CHAINSPEC_FILE"
 
+    log_info "Nethermind client image: $NETHERMIND_CLIENT_IMAGE"
+
     # Run nethermind briefly to confirm genesis hash from its startup logs
     docker rm -f nethermind-genesis-hash 2>/dev/null || true
     log_info "Running nethermind to compute genesis hash (up to 60s)..."
     docker run -d --name nethermind-genesis-hash \
         -v "$(realpath "$CHAINSPEC_FILE"):/chainspec.json:ro" \
-        "$NETHERMIND_IMAGE" \
+        "$NETHERMIND_CLIENT_IMAGE" \
         --config=none \
         --Init.ChainSpecPath=/chainspec.json \
         >/dev/null 2>&1
