@@ -473,9 +473,9 @@ compute_genesis_hash() {
             feeCollector:        "0x0000000000000000000000000000000000000000",
             depositContractAddress: "0x0000000000000000000000000000000000000000",
             shanghaiTime:        0,
-            cancunTime:          0,
-            pragueTime:          0,
-            osakaTime:           0,
+            cancunTime:          $hexUnzenTs,
+            pragueTime:          $hexUnzenTs,
+            osakaTime:           $hexUnzenTs,
             taiko:               true
           },
           alloc:        $alloc[0],
@@ -538,7 +538,9 @@ compute_genesis_hash() {
 
     waited=0
     while true; do
-        if docker logs nethermind-genesis-hash 2>/dev/null | grep -q "Genesis hash"; then
+        # Nethermind writes its startup banner (including "Genesis hash") to stderr,
+        # so merge stderr into stdout before grepping.
+        if docker logs nethermind-genesis-hash 2>&1 | grep -q "Genesis hash"; then
             break
         fi
 
@@ -563,7 +565,7 @@ compute_genesis_hash() {
     done
 
     local nmc_genesis_hash
-    nmc_genesis_hash=$(docker logs nethermind-genesis-hash 2>/dev/null \
+    nmc_genesis_hash=$(docker logs nethermind-genesis-hash 2>&1 \
         | grep "Genesis hash" \
         | head -n 1 \
         | sed 's/\x1b\[[0-9;]*m//g' \
