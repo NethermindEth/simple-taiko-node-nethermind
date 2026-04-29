@@ -467,7 +467,7 @@ compute_genesis_hash() {
             londonBlock:         0,
             mergeForkBlock:      0,
             ontakeBlock:         0,
-            pacayaBlock:         1,
+            pacayaBlock:         0,
             shastaTimestamp:     $hexTs,
             unzenTimestamp:      $hexUnzenTs,
             feeCollector:        "0x0000000000000000000000000000000000000000",
