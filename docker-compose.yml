@@ -45,7 +45,7 @@ services:
         entrypoint: ["/bin/sh", "-c"]
         command:
             - |
-                cp -r /script ./script && cd ./script \
+                cp -r /script ./script && cd ./script && \
                 chmod +x ./transfer_funds_and_add_operator.sh && \
                 ./transfer_funds_and_add_operator.sh
         env_file:
