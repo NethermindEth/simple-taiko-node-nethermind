@@ -10,8 +10,8 @@ readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
 readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
+readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
 
-readonly NETHERMIND_IMAGE="nethermindeth/nethermind:master"
 readonly STATIC_DIR="./static"
 readonly CHAINSPEC_FILE="${STATIC_DIR}/taiko-shasta-chainspec.json"
 readonly GENESIS_FILE="${STATIC_DIR}/genesis.json"
@@ -246,82 +246,6 @@ deploy_l1_devnet() {
     fi
 }
 
-# ─── Phase 2: Pacaya contract deployment ──────────────────────────────────────
-deploy_pacaya_contracts() {
-    local mode_choice="$1"
-
-    local output_file="${DEPLOYMENTS_DIR}/deploy_l1_pacaya.json"
-
-    if [[ -f "$output_file" ]]; then
-        log_info "Pacaya contracts already deployed ($output_file found), skipping"
-        return 0
-    fi
-
-    log_info "Deploying Pacaya contracts..."
-
-    local exit_status=0
-    local temp_output="/tmp/taiko_pacaya_deploy_output_$$"
-
-    if [[ "$mode_choice" == "debug" ]]; then
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up pacaya-deployer 2>&1 | tee "$temp_output"
-        exit_status=${PIPESTATUS[0]}
-    else
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up pacaya-deployer >"$temp_output" 2>&1 &
-        local deploy_pid=$!
-
-        show_progress $deploy_pid "Deploying Pacaya contracts..."
-
-        wait $deploy_pid
-        exit_status=$?
-    fi
-
-    if [[ $exit_status -ne 0 ]]; then
-        log_error "Pacaya contract deployment failed (exit code: $exit_status)"
-        if [[ "$mode_choice" == "silence" ]]; then
-            log_error "Re-run with --mode debug for full output"
-        fi
-        log_error "Output saved to: $temp_output"
-        return 1
-    fi
-
-    if [[ ! -f "$output_file" ]]; then
-        log_error "Deployment succeeded but $output_file not found"
-        log_error "Check deployer logs: docker logs pacaya-deployer"
-        return 1
-    fi
-
-    log_info "Extracting Pacaya contract addresses..."
-
-    local addr
-    addr=$(cat "$output_file" | jq -r '.automata_dcap_attestation') && update_env_var "$ENV_FILE" "PACAYA_AUTOMATA_DCAP_ATTESTATION" "$addr"
-    addr=$(cat "$output_file" | jq -r '.bridge')                    && update_env_var "$ENV_FILE" "PACAYA_BRIDGE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc1155_vault')             && update_env_var "$ENV_FILE" "PACAYA_ERC1155_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc20_vault')               && update_env_var "$ENV_FILE" "PACAYA_ERC20_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.erc721_vault')              && update_env_var "$ENV_FILE" "PACAYA_ERC721_VAULT" "$addr"
-    addr=$(cat "$output_file" | jq -r '.forced_inclusion_store')    && update_env_var "$ENV_FILE" "PACAYA_FORCED_INCLUSION_STORE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.mainnet_taiko')             && update_env_var "$ENV_FILE" "PACAYA_MAINNET_TAIKO" "$addr"
-    addr=$(cat "$output_file" | jq -r '.op_geth_verifier')          && update_env_var "$ENV_FILE" "PACAYA_OP_GETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.op_verifier')               && update_env_var "$ENV_FILE" "PACAYA_OP_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.preconf_router')            && update_env_var "$ENV_FILE" "PACAYA_PRECONF_ROUTER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.preconf_whitelist')         && update_env_var "$ENV_FILE" "PACAYA_PRECONF_WHITELIST" "$addr"
-    addr=$(cat "$output_file" | jq -r '.proof_verifier')            && update_env_var "$ENV_FILE" "PACAYA_PROOF_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.prover_set')                && update_env_var "$ENV_FILE" "PACAYA_PROVER_SET" "$addr"
-    addr=$(cat "$output_file" | jq -r '.risc0_reth_verifier')       && update_env_var "$ENV_FILE" "PACAYA_RISC0_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.rollup_address_resolver')   && update_env_var "$ENV_FILE" "PACAYA_ROLLUP_ADDRESS_RESOLVER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_geth_automata')         && update_env_var "$ENV_FILE" "PACAYA_SGX_GETH_AUTOMATA" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_geth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SGX_GETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sgx_reth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SGX_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.shared_resolver')           && update_env_var "$ENV_FILE" "PACAYA_SHARED_RESOLVER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.signal_service')            && update_env_var "$ENV_FILE" "PACAYA_SIGNAL_SERVICE" "$addr"
-    addr=$(cat "$output_file" | jq -r '.sp1_reth_verifier')         && update_env_var "$ENV_FILE" "PACAYA_SP1_RETH_VERIFIER" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko')                     && update_env_var "$ENV_FILE" "PACAYA_TAIKO" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko_token')               && update_env_var "$ENV_FILE" "PACAYA_TAIKO_TOKEN" "$addr"
-    addr=$(cat "$output_file" | jq -r '.taiko_wrapper')             && update_env_var "$ENV_FILE" "PACAYA_TAIKO_WRAPPER" "$addr"
-
-    log_success "Pacaya contracts deployed and addresses saved"
-    return 0
-}
-
 # ─── Phase 2: Shasta contract deployment ──────────────────────────────────────
 deploy_shasta_contracts() {
     local mode_choice="$1"
@@ -379,6 +303,8 @@ deploy_shasta_contracts() {
     addr=$(cat "$output_file" | jq -r '.shared_resolver')                    && update_env_var "$ENV_FILE" "SHASTA_SHARED_RESOLVER" "$addr"
     addr=$(cat "$output_file" | jq -r '.shasta_inbox')                       && update_env_var "$ENV_FILE" "SHASTA_SHASTA_INBOX" "$addr"
     addr=$(cat "$output_file" | jq -r '.signal_service')                     && update_env_var "$ENV_FILE" "SHASTA_SIGNAL_SERVICE" "$addr"
+    addr=$(cat "$output_file" | jq -r '.preconf_whitelist')                  && update_env_var "$ENV_FILE" "SHASTA_PRECONF_WHITELIST" "$addr"
+    addr=$(cat "$output_file" | jq -r '.taiko_token')                        && update_env_var "$ENV_FILE" "SHASTA_TAIKO_TOKEN" "$addr"
 
     log_success "Shasta contracts deployed and addresses saved"
     return 0
@@ -511,6 +437,9 @@ compute_genesis_hash() {
     local hex_timestamp
     printf -v hex_timestamp '0x%x' "${TAIKO_INTERNAL_SHASTA_TIME:-0}"
 
+    local hex_unzen_timestamp
+    printf -v hex_unzen_timestamp '0x%x' "${UNZEN_FORK_TIME:-0}"
+
     local full_genesis_file
     full_genesis_file=$(mktemp /tmp/taiko-genesis-full.XXXXXX.json)
 
@@ -522,6 +451,7 @@ compute_genesis_hash() {
         --argjson block "$genesis_block" \
         --argjson chainId "${L2_CHAIN_ID:-167001}" \
         --arg hexTs "$hex_timestamp" \
+        --arg hexUnzenTs "$hex_unzen_timestamp" \
         '{
           config: {
             chainId:             $chainId,
@@ -537,11 +467,15 @@ compute_genesis_hash() {
             londonBlock:         0,
             mergeForkBlock:      0,
             ontakeBlock:         0,
-            pacayaBlock:         1,
+            pacayaBlock:         0,
             shastaTimestamp:     $hexTs,
+            unzenTimestamp:      $hexUnzenTs,
             feeCollector:        "0x0000000000000000000000000000000000000000",
+            depositContractAddress: "0x0000000000000000000000000000000000000000",
             shanghaiTime:        0,
-            cancunTime:          null,
+            cancunTime:          $hexUnzenTs,
+            pragueTime:          $hexUnzenTs,
+            osakaTime:           $hexUnzenTs,
             taiko:               true
           },
           alloc:        $alloc[0],
@@ -574,6 +508,7 @@ compute_genesis_hash() {
 
     if ! jq --from-file "$gen2spec_file" "$full_genesis_file" \
             | jq --arg hexTs "$hex_timestamp" '.engine.Taiko.shastaTimestamp = $hexTs' \
+            | jq --arg hexUnzenTs "$hex_unzen_timestamp" '.engine.Taiko.unzenTimestamp = $hexUnzenTs' \
             > "$CHAINSPEC_FILE"; then
         log_error "Chainspec conversion failed — check gen2spec output above"
         rm -f "$gen2spec_file" "$full_genesis_file"
@@ -589,19 +524,23 @@ compute_genesis_hash() {
 
     log_success "Chainspec written to $CHAINSPEC_FILE"
 
+    log_info "Nethermind client image: $NETHERMIND_CLIENT_IMAGE"
+
     # Run nethermind briefly to confirm genesis hash from its startup logs
     docker rm -f nethermind-genesis-hash 2>/dev/null || true
     log_info "Running nethermind to compute genesis hash (up to 60s)..."
     docker run -d --name nethermind-genesis-hash \
         -v "$(realpath "$CHAINSPEC_FILE"):/chainspec.json:ro" \
-        "$NETHERMIND_IMAGE" \
+        "$NETHERMIND_CLIENT_IMAGE" \
         --config=none \
         --Init.ChainSpecPath=/chainspec.json \
         >/dev/null 2>&1
 
     waited=0
     while true; do
-        if docker logs nethermind-genesis-hash 2>/dev/null | grep -q "Genesis hash"; then
+        # Nethermind writes its startup banner (including "Genesis hash") to stderr,
+        # so merge stderr into stdout before grepping.
+        if docker logs nethermind-genesis-hash 2>&1 | grep -q "Genesis hash"; then
             break
         fi
 
@@ -626,7 +565,7 @@ compute_genesis_hash() {
     done
 
     local nmc_genesis_hash
-    nmc_genesis_hash=$(docker logs nethermind-genesis-hash 2>/dev/null \
+    nmc_genesis_hash=$(docker logs nethermind-genesis-hash 2>&1 \
         | grep "Genesis hash" \
         | head -n 1 \
         | sed 's/\x1b\[[0-9;]*m//g' \
@@ -659,6 +598,7 @@ start_l2_stack() {
     case "$client_choice" in
         "nethermind") compose_file="$COMPOSE_FILE_NETHERMIND" ;;
         "geth")       compose_file="$COMPOSE_FILE_GETH" ;;
+        "alethia-reth")       compose_file="$COMPOSE_FILE_RETH" ;;
     esac
 
     # Build profile arguments — stack profile is required for both clients
@@ -710,6 +650,7 @@ check_l2_health() {
     case "$client_choice" in
         "nethermind") rpc_port=8547 ;;
         "geth")       rpc_port=8547 ;;
+        "alethia-reth")       rpc_port=8547 ;;
     esac
 
     local attempts=0
@@ -867,15 +808,16 @@ main() {
             client_raw=$(prompt_client_selection)
             case "$client_raw" in
                 1|"geth") client="geth" ;;
+                2|"alethia-reth") client="alethia-reth" ;;
                 *)         client="nethermind" ;;
             esac
         fi
     fi
 
     case "$client" in
-        "nethermind"|"geth") ;;
+        "nethermind"|"geth"|"alethia-reth") ;;
         *)
-            log_error "Invalid client: $client (must be nethermind or geth)"
+            log_error "Invalid client: $client (must be nethermind, geth, or alethia-reth)"
             exit 1
             ;;
     esac
@@ -1030,7 +972,7 @@ main() {
     # ── Phase 2 pre-step: fork timestamp (must precede genesis hash computation
     #    because the chainspec embeds the shasta timestamp) ─────────────────────
     log_info "Setting fork timestamp..."
-    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}"
+    update_fork_timestamp "$ENV_FILE" "${FORK_ACTIVATION_BUFFER:-120}" "${UPDATE_SHASTA_FORK_TIME:-true}" "${UPDATE_UNZEN_FORK_TIME:-true}"
     set -a; source "$ENV_FILE"; set +a
 
     # ── Phase 2: Contract deployment ──────────────────────────────────────────
@@ -1054,11 +996,6 @@ main() {
 
         # Reload env so deployer containers inherit the updated L2_GENESIS_HASH
         set -a; source "$ENV_FILE"; set +a
-
-        if ! deploy_pacaya_contracts "$mode"; then
-            log_error "Pacaya contract deployment failed"
-            exit 1
-        fi
 
         if ! deploy_shasta_contracts "$mode"; then
             log_error "Shasta contract deployment failed"

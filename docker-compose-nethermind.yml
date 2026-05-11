@@ -37,25 +37,9 @@ services:
         profiles:
             - stack
 
-    fork-switch:
-        container_name: fork-switch
-        build:
-            context: ./shasta-pacay-transition
-            dockerfile: Dockerfile
-        restart: on-failure
-        networks:
-            - preconf
-        env_file:
-            - .env
-            - .env.stack-1
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        profiles:
-            - stack
-
     taiko-nethermind-1:
         container_name: taiko-nethermind-1
-        image: nethermindeth/nethermind:master
+        image: ${NETHERMIND_CLIENT_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
@@ -143,7 +127,7 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-1
+            - ./env-stack/.env.stack-1-nmc
         depends_on:
             - taiko-nethermind-1
             - p2p-bootnode
@@ -166,8 +150,9 @@ services:
                   --p2p.advertise.ip=taiko-driver-1 \
                   --metrics=true \
                   --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -193,7 +178,7 @@ services:
         # Inherit env vars from parent process
         env_file:
             - .env
-            - .env.stack-1-nmc
+            - ./env-stack/.env.stack-1-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
@@ -249,7 +234,7 @@ services:
 
     taiko-nethermind-2:
         container_name: taiko-nethermind-2
-        image: nethermindeth/nethermind:master
+        image: ${NETHERMIND_CLIENT_IMAGE}
         restart: unless-stopped
         pull_policy: always
         extra_hosts:
@@ -336,7 +321,7 @@ services:
             custom_network: "dev"
         env_file:
             - .env
-            - .env.stack-2
+            - ./env-stack/.env.stack-2-nmc
         depends_on:
             - taiko-nethermind-2
             - p2p-bootnode
@@ -359,8 +344,9 @@ services:
                   --p2p.advertise.ip=taiko-driver-2 \
                   --metrics=true \
                   --verbosity=4 \
-                  --pacayaInbox=$${PACAYA_INBOX} \
-                  --shastaInbox=$${SHASTA_INBOX} \
+                  --inbox=$${SHASTA_INBOX} \
+                  --taikoAnchor=$${TAIKO_ANCHOR} \
+                  --taiko.devnet-unzen-time=$${UNZEN_FORK_TIME} \
                   --p2p.bootnodes=$$ENR
         profiles:
             - stack
@@ -385,7 +371,7 @@ services:
             custom_network: "dev"
         env_file:
             - .env
-            - .env.stack-2-nmc
+            - ./env-stack/.env.stack-2-nmc
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:

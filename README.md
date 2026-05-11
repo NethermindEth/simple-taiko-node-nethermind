@@ -158,7 +158,7 @@ Run the deploy script:
 
 The script walks you through a series of prompts:
 
-1. **L2 execution client** — choose `nethermind` (default) or `taiko-geth`
+1. **L2 execution client** — choose `nethermind` (default), `taiko-geth` or `alethia-reth`
 2. **Deployment environment** — choose `local` (default) or `remote`
 3. **L1 Blockscout explorer** — optional block explorer for the L1 devnet (yes / no)
 4. **Output mode** — choose `silence` (default, shows a spinner) or `debug` (full logs)
@@ -179,12 +179,14 @@ Two execution clients are supported:
 |--------|-------------|
 | `nethermind` | [Nethermind](https://nethermind.io/) — a C# / .NET Ethereum client with Taiko-specific changes |
 | `geth` (taiko-geth) | A Go Ethereum fork maintained by the Taiko team |
+| `alethia-reth` | Alethia RETH fork maintained by the Taiko team
 
 You can select the client interactively, or pass it as a flag:
 
 ```bash
 ./deploy-taiko-full.sh --client nethermind
 ./deploy-taiko-full.sh --client geth
+./deploy-taiko-full.sh --client alethia-reth
 ```
 
 Both clients expose the same L2 RPC port (`8547`), so you can switch between them for testing. Just run `./remove-taiko-full.sh` first to tear down the existing stack completely before redeploying with the other client.
@@ -282,7 +284,7 @@ Pass all options as flags to skip every prompt. Useful in CI or when you want a 
 
 | Flag | Values | Default | Description |
 |------|--------|---------|-------------|
-| `--client` | `nethermind` \| `geth` | from `.env`, or interactive | L2 execution client |
+| `--client` | `nethermind` \| `geth` \| `alethia-reth` | from `.env`, or interactive | L2 execution client |
 | `--environment` | `local` \| `remote` | interactive | Whether the L1 devnet is local or remote |
 | `--skip-l1-devnet` | — | false | Skip L1 devnet deployment (reuse running devnet) |
 | `--skip-contracts` | — | false | Skip contract deployment (reuse existing `deployments/`) |
