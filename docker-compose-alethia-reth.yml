@@ -150,6 +150,7 @@ services:
                   --l2.ws=ws://alethia-reth-1:8546 \
                   --l2.auth=http://alethia-reth-1:8551 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
@@ -338,6 +339,7 @@ services:
                   --l2.ws=ws://alethia-reth-2:8546 \
                   --l2.auth=http://alethia-reth-2:8551 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --inbox=$${SHASTA_INBOX} \
                   --taikoAnchor=$${TAIKO_ANCHOR} \

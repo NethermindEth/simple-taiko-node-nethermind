@@ -164,6 +164,7 @@ services:
                   --l2.ws=ws://taiko-geth-1:8546 \
                   --l2.auth=http://taiko-geth-1:8551 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
@@ -364,6 +365,7 @@ services:
                   --l2.ws=ws://taiko-geth-2:8546 \
                   --l2.auth=http://taiko-geth-2:8551 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \

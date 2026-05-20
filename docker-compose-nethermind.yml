@@ -142,6 +142,7 @@ services:
                   --l2.ws=ws://taiko-nethermind-1:8548 \
                   --l2.auth=http://taiko-nethermind-1:8552 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
@@ -336,6 +337,7 @@ services:
                   --l2.ws=ws://taiko-nethermind-2:8548 \
                   --l2.auth=http://taiko-nethermind-2:8552 \
                   --preconfirmation.serverPort=1235 \
+                  --preconfirmation.jwtSecret=/jwtsecret.hex \
                   --p2p.priv.path=/p2psecret.hex \
                   --p2p.listen.tcp=9000 \
                   --p2p.listen.udp=9000 \
