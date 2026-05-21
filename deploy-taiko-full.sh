@@ -66,7 +66,7 @@ show_help() {
     echo
     echo "Options:"
     echo "  --environment ENV     L1 devnet environment: local|remote (default: local)"
-    echo "  --client CLIENT       L2 execution client: nethermind|geth (default: from .env or nethermind)"
+    echo "  --client CLIENT       L2 execution client: nethermind|geth|alethia-reth (default: from .env or nethermind)"
     echo "  --skip-l1-devnet      Skip L1 devnet deployment (use an already-running devnet)"
     echo "  --skip-contracts      Skip contract deployment (use existing deployments/)"
     echo "  --l1-blockscout       Enable Blockscout in the L1 devnet"
