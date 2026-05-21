@@ -8,9 +8,7 @@ readonly ENCLAVE_NAME="surge-devnet"
 readonly CONFIGS_DIR="configs"
 readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
-readonly COMPOSE_FILE_GETH="docker-compose.yml"
-readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
-readonly COMPOSE_FILE_RETH="docker-compose-alethia-reth.yml"
+readonly COMPOSE_FILE="docker-compose.yml"
 
 readonly STATIC_DIR="./static"
 readonly CHAINSPEC_FILE="${STATIC_DIR}/taiko-shasta-chainspec.json"
@@ -263,10 +261,10 @@ deploy_shasta_contracts() {
     local temp_output="/tmp/taiko_shasta_deploy_output_$$"
 
     if [[ "$mode_choice" == "debug" ]]; then
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up shasta-deployer 2>&1 | tee "$temp_output"
+        docker compose -f "$COMPOSE_FILE" --profile deploy up shasta-deployer 2>&1 | tee "$temp_output"
         exit_status=${PIPESTATUS[0]}
     else
-        docker compose -f "$COMPOSE_FILE_GETH" --profile deploy up shasta-deployer >"$temp_output" 2>&1 &
+        docker compose -f "$COMPOSE_FILE" --profile deploy up shasta-deployer >"$temp_output" 2>&1 &
         local deploy_pid=$!
 
         show_progress $deploy_pid "Deploying Shasta contracts..."
@@ -594,15 +592,22 @@ start_l2_stack() {
 
     log_info "Starting L2 Catalyst stack (client: $client_choice)..."
 
-    local compose_file
+    local taiko_el_profile
+
     case "$client_choice" in
-        "nethermind") compose_file="$COMPOSE_FILE_NETHERMIND" ;;
-        "geth")       compose_file="$COMPOSE_FILE_GETH" ;;
-        "alethia-reth")       compose_file="$COMPOSE_FILE_RETH" ;;
+        "nethermind")
+            taiko_el_profile="taiko-el-nethermind"
+            ;;
+        "geth")
+            taiko_el_profile="taiko-el-geth"
+            ;;
+        "alethia-reth")
+            taiko_el_profile="taiko-el-alethia-reth"
+            ;;
     esac
 
-    # Build profile arguments — stack profile is required for both clients
-    local profile_args="--profile stack"
+    # Build profile arguments — stack + selected EL profile are required
+    local profile_args="--profile stack --profile $taiko_el_profile"
     if [[ "$with_blockscout" == "true" ]]; then
         profile_args="$profile_args --profile blockscout"
     fi
@@ -615,10 +620,10 @@ start_l2_stack() {
 
     # shellcheck disable=SC2086
     if [[ "$mode_choice" == "debug" ]]; then
-        docker compose -f "$compose_file" $profile_args up -d 2>&1 | tee "$temp_output"
+        docker compose -f "$COMPOSE_FILE" $profile_args up -d 2>&1 | tee "$temp_output"
         exit_status=${PIPESTATUS[0]}
     else
-        docker compose -f "$compose_file" $profile_args up -d >"$temp_output" 2>&1 &
+        docker compose -f "$COMPOSE_FILE" $profile_args up -d >"$temp_output" 2>&1 &
         local stack_pid=$!
 
         show_progress $stack_pid "Starting L2 stack containers..."
