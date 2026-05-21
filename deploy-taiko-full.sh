@@ -716,11 +716,12 @@ check_l1_health() {
 # ─── Summary ─────────────────────────────────────────────────────────────────
 display_deployment_summary() {
     local client_choice="$1"
-    local env_choice="$2"
-    local l1_deployed="$3"
-    local contracts_deployed="$4"
-    local with_blockscout="${5:-false}"
-    local with_spammer="${6:-false}"
+    local driver_choice="$2"
+    local env_choice="$3"
+    local l1_deployed="$4"
+    local contracts_deployed="$5"
+    local with_blockscout="${6:-false}"
+    local with_spammer="${7:-false}"
 
     local rpc_port="${PORT_L2_EXECUTION_ENGINE_1_HTTP:-8547}"
     local ws_port="${PORT_L2_EXECUTION_ENGINE_1_WS:-8548}"
@@ -1082,7 +1083,7 @@ main() {
     check_l2_health "$client"
 
     # ── Summary ───────────────────────────────────────────────────────────────
-    display_deployment_summary "$client" "${environment:-local}" "$l1_deployed" "$contracts_deployed" "$enable_l2_blockscout" "$enable_l2_spammer"
+    display_deployment_summary "$client" "$driver" "${environment:-local}" "$l1_deployed" "$contracts_deployed" "$enable_l2_blockscout" "$enable_l2_spammer"
 
     log_success "Taiko devnet deployment complete!"
 }
