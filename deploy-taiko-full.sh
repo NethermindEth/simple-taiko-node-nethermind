@@ -34,6 +34,7 @@ readonly NETWORK_PARAMS="./configs/network_params.yaml"
 # Default argument values
 environment=""
 client=""
+driver=""
 mode=""
 skip_l1_devnet="false"
 skip_contracts="false"
@@ -99,6 +100,10 @@ parse_arguments() {
                 ;;
             --client)
                 client="$2"
+                shift 2
+                ;;
+            --driver)
+                driver="$2"
                 shift 2
                 ;;
             --skip-l1-devnet)
@@ -584,16 +589,18 @@ compute_genesis_hash() {
 }
 
 # ─── Phase 3: Start L2 stack ──────────────────────────────────────────────────
-# Usage: start_l2_stack <client> <mode> <enable_blockscout> <enable_spammer>
+# Usage: start_l2_stack <client> <driver> <mode> <enable_blockscout> <enable_spammer>
 start_l2_stack() {
     local client_choice="$1"
-    local mode_choice="$2"
-    local with_blockscout="${3:-false}"
-    local with_spammer="${4:-false}"
+    local driver_choice="$2"
+    local mode_choice="$3"
+    local with_blockscout="${4:-false}"
+    local with_spammer="${5:-false}"
 
-    log_info "Starting L2 Catalyst stack (client: $client_choice)..."
+    log_info "Starting L2 Catalyst stack (client: $client_choice, driver: $driver_choice)..."
 
     local taiko_el_profile
+    local taiko_driver_profile
 
     case "$client_choice" in
         "nethermind")
@@ -607,8 +614,21 @@ start_l2_stack() {
             ;;
     esac
 
-    # Build profile arguments — stack + selected EL profile are required
-    local profile_args="--profile stack --profile $taiko_el_profile"
+    case "$driver_choice" in
+        "rust")
+            taiko_driver_profile="taiko-client-rs"
+            ;;
+        "go")
+            taiko_driver_profile="taiko-client-go"
+            ;;
+        *)
+            log_error "Invalid driver: $driver_choice (must be go or rust)"
+            return 1
+            ;;
+    esac
+
+    # Build profile arguments — stack + selected EL/driver profiles are required
+    local profile_args="--profile stack --profile $taiko_el_profile --profile $taiko_driver_profile"
     if [[ "$with_blockscout" == "true" ]]; then
         profile_args="$profile_args --profile blockscout"
     fi
@@ -735,6 +755,7 @@ display_deployment_summary() {
         echo "║  • Pacaya + Shasta contracts     (pre-existing)              ║"
     fi
     printf "║  • L2 execution client           %-28s║\n" "$client_choice"
+    printf "║  • L2 driver client              %-28s║\n" "$driver_choice"
     echo "║  • Catalyst nodes + drivers      running                     ║"
     if [[ "$with_blockscout" == "true" ]]; then
         echo "║  • L2 Blockscout explorer        running                     ║"
@@ -829,6 +850,36 @@ main() {
     esac
 
     update_env_var "$ENV_FILE" "EXECUTION_CLIENT" "$client"
+
+    # ── Resolve driver client ─────────────────────────────────────────────────
+    if [[ -z "$driver" ]]; then
+        local existing_driver="${EXECUTION_DRIVER:-}"
+        # Only reuse the cached driver when skipping L1 (stack restart).
+        # On a fresh deploy always prompt/default so the user can choose.
+        if [[ -n "$existing_driver" && "$skip_l1_devnet" == "true" ]]; then
+            log_info "Using driver client from .env: $existing_driver"
+            driver="$existing_driver"
+        elif [[ "$force" == "true" ]]; then
+            driver="${existing_driver:-go}"
+        else
+            local driver_raw
+            driver_raw=$(prompt_driver_selection)
+            case "$driver_raw" in
+                1|"rust") driver="rust" ;;
+                *)         driver="go" ;;
+            esac
+        fi
+    fi
+
+    case "$driver" in
+        "go"|"rust") ;;
+        *)
+            log_error "Invalid driver: $driver (must be go or rust)"
+            exit 1
+            ;;
+    esac
+
+    update_env_var "$ENV_FILE" "EXECUTION_DRIVER" "$driver"
 
     # ── Nethermind genesis info ────────────────────────────────────────────────
     if [[ "$client" == "nethermind" ]]; then
@@ -931,6 +982,7 @@ main() {
     echo
     log_info "Deployment configuration:"
     echo "  Execution client:  $client"
+    echo "  Driver client:     $driver"
     echo "  L1 environment:    ${environment:-n/a (skipped)}"
     echo "  Output mode:       $mode"
     echo "  Skip L1 devnet:    $skip_l1_devnet"
@@ -1020,7 +1072,7 @@ main() {
     # ── Phase 4: Start L2 stack ───────────────────────────────────────────────
     log_info "Phase 4: Starting L2 Catalyst stack"
 
-    if ! start_l2_stack "$client" "$mode" "$enable_l2_blockscout" "$enable_l2_spammer"; then
+    if ! start_l2_stack "$client" "$driver" "$mode" "$enable_l2_blockscout" "$enable_l2_spammer"; then
         log_error "Failed to start L2 stack"
         exit 1
     fi

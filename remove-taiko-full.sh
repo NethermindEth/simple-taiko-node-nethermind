@@ -193,6 +193,8 @@ remove_l2_stack() {
             --profile taiko-el-geth \
             --profile taiko-el-nethermind \
             --profile taiko-el-alethia-reth \
+            --profile taiko-client-rs \
+            --profile taiko-client-go \
             down --remove-orphans 2>&1 || true
 
         # Hard fallback: SIGKILL then force-remove all known containers by name
@@ -202,7 +204,8 @@ remove_l2_stack() {
             alethia-reth-1 alethia-reth-2
             taiko-nethermind-1 taiko-nethermind-2
             taiko-geth-1 taiko-geth-2
-            taiko-driver-1 taiko-driver-2
+            taiko-client-rs-1 taiko-client-go-1
+            taiko-client-rs-2 taiko-client-go-2
             catalyst-node-1 catalyst-node-2
             transfer-funds p2p-bootnode
             web3signer_l1 web3signer_l2
@@ -260,6 +263,8 @@ remove_docker_volumes() {
             --profile taiko-el-geth \
             --profile taiko-el-nethermind \
             --profile taiko-el-alethia-reth \
+            --profile taiko-client-rs \
+            --profile taiko-client-go \
             down -v --remove-orphans 2>&1 || true
 
         # Hard fallback: remove known named volumes that compose may have missed

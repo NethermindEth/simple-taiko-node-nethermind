@@ -756,6 +756,9 @@ services:
             taiko-client-rs-1:
                 condition: service_started
                 required: false
+            taiko-client-go-1:
+                condition: service_started
+                required: false
         volumes:
             - ./static/spamoor:/config
         ports:
@@ -805,6 +808,9 @@ services:
             taiko-client-rs-1:
                 condition: service_started
                 required: false
+            taiko-client-go-1:
+                condition: service_started
+                required: false
             blockscout-postgres:
                 condition: service_started
         ports:
@@ -829,6 +835,9 @@ services:
         pull_policy: always
         depends_on:
             taiko-client-rs-1:
+                condition: service_started
+                required: false
+            taiko-client-go-1:
                 condition: service_started
                 required: false
             blockscout-postgres:
