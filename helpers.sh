@@ -361,3 +361,17 @@ prompt_client_selection() {
     choice=${choice:-0}
     echo "$choice"
 }
+
+prompt_driver_selection() {
+    echo >&2
+    echo "╔══════════════════════════════════════════════════════════════╗" >&2
+    echo "  Select L2 driver client:                                      " >&2
+    echo "║══════════════════════════════════════════════════════════════║" >&2
+    echo "║  0 for go (default)                                           ║" >&2
+    echo "║  1 for rust                                                   ║" >&2
+    echo "╚══════════════════════════════════════════════════════════════╝" >&2
+    echo >&2
+    read -p "Enter choice [0]: " choice
+    choice=${choice:-0}
+    echo "$choice"
+}
