@@ -9,7 +9,7 @@ const { ethers } = require("ethers");
 // Configuration from environment variables
 const RPC_URL = process.env.L1_ENDPOINT_HTTP;
 const PRIVATE_KEY = process.env.CONTRACT_OWNER_PRIVATE_KEY;
-const L2_RPC_URL = process.env.L2_RPC_URL;
+const L2_RPC_URL = process.env.FORK_L2_RPC_URL;
 const SHASTA_INBOX_ADDRESS = process.env.SHASTA_INBOX;
 const SHASTA_TIMESTAMP = process.env.TAIKO_INTERNAL_SHASTA_TIME;
 
