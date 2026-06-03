@@ -1,7 +1,7 @@
 participants:
 # EL
   - el_type: nethermind
-    el_image: nethermind/nethermind:latest
+    el_image: nethermind/nethermind:1.37.2
     el_log_level: ""
     el_extra_env_vars: {}
     el_extra_labels: {}
