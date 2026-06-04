@@ -10,6 +10,8 @@ readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
 readonly COMPOSE_FILE_GETH="docker-compose.yml"
 readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
+readonly COMPOSE_FILE_GETH_RS_OVERRIDE="docker-compose-rs.override.yml"
+readonly COMPOSE_FILE_NETHERMIND_RS_OVERRIDE="docker-compose-nethermind-rs.override.yml"
 
 readonly NETHERMIND_IMAGE="nethermindeth/nethermind:master"
 readonly STATIC_DIR="./static"
@@ -36,6 +38,7 @@ readonly NETWORK_PARAMS="./configs/network_params.yaml"
 # Default argument values
 environment=""
 client=""
+driver_impl=""
 mode=""
 skip_l1_devnet="false"
 skip_contracts="false"
@@ -69,6 +72,7 @@ show_help() {
     echo "Options:"
     echo "  --environment ENV     L1 devnet environment: local|remote (default: local)"
     echo "  --client CLIENT       L2 execution client: nethermind|geth (default: from .env or nethermind)"
+    echo "  --driver-impl IMPL    Taiko-client implementation: go|rs (default: from .env or go)"
     echo "  --skip-l1-devnet      Skip L1 devnet deployment (use an already-running devnet)"
     echo "  --skip-contracts      Skip contract deployment (use existing deployments/)"
     echo "  --l1-blockscout       Enable Blockscout in the L1 devnet"
@@ -87,6 +91,7 @@ show_help() {
     echo "  $0 --client nethermind --mode debug            # Nethermind with debug output"
     echo "  $0 --skip-l1-devnet --skip-contracts           # Restart stack only"
     echo "  $0 --environment remote --client geth -f       # Non-interactive remote deploy"
+    echo "  $0 --client nethermind --driver-impl rs -f     # Use Rust taiko-client driver"
     exit 0
 }
 
@@ -100,6 +105,10 @@ parse_arguments() {
                 ;;
             --client)
                 client="$2"
+                shift 2
+                ;;
+            --driver-impl)
+                driver_impl="$2"
                 shift 2
                 ;;
             --skip-l1-devnet)
@@ -646,20 +655,42 @@ compute_genesis_hash() {
 }
 
 # ─── Phase 3: Start L2 stack ──────────────────────────────────────────────────
-# Usage: start_l2_stack <client> <mode> <enable_blockscout> <enable_spammer>
+# Usage: start_l2_stack <client> <mode> <enable_blockscout> <enable_spammer> <driver_impl>
 start_l2_stack() {
     local client_choice="$1"
     local mode_choice="$2"
     local with_blockscout="${3:-false}"
     local with_spammer="${4:-false}"
+    local driver_impl_choice="${5:-go}"
 
-    log_info "Starting L2 Catalyst stack (client: $client_choice)..."
+    log_info "Starting L2 Catalyst stack (client: $client_choice, driver: $driver_impl_choice)..."
 
     local compose_file
+    local rs_override_file
     case "$client_choice" in
-        "nethermind") compose_file="$COMPOSE_FILE_NETHERMIND" ;;
-        "geth")       compose_file="$COMPOSE_FILE_GETH" ;;
+        "nethermind")
+            compose_file="$COMPOSE_FILE_NETHERMIND"
+            rs_override_file="$COMPOSE_FILE_NETHERMIND_RS_OVERRIDE"
+            ;;
+        "geth")
+            compose_file="$COMPOSE_FILE_GETH"
+            rs_override_file="$COMPOSE_FILE_GETH_RS_OVERRIDE"
+            ;;
     esac
+
+    # Compose -f arguments: base file plus optional rs override
+    local compose_files=("-f" "$compose_file")
+    if [[ "$driver_impl_choice" == "rs" ]]; then
+        if [[ ! -f "$rs_override_file" ]]; then
+            log_error "Rust driver override file not found: $rs_override_file"
+            return 1
+        fi
+        compose_files+=("-f" "$rs_override_file")
+        if [[ -z "${TAIKO_CLIENT_RS_IMAGE:-}" ]]; then
+            log_error "TAIKO_CLIENT_RS_IMAGE is not set in .env"
+            return 1
+        fi
+    fi
 
     # Build profile arguments — stack profile is required for both clients
     local profile_args="--profile stack"
@@ -675,10 +706,10 @@ start_l2_stack() {
 
     # shellcheck disable=SC2086
     if [[ "$mode_choice" == "debug" ]]; then
-        docker compose -f "$compose_file" $profile_args up -d 2>&1 | tee "$temp_output"
+        docker compose "${compose_files[@]}" $profile_args up -d 2>&1 | tee "$temp_output"
         exit_status=${PIPESTATUS[0]}
     else
-        docker compose -f "$compose_file" $profile_args up -d >"$temp_output" 2>&1 &
+        docker compose "${compose_files[@]}" $profile_args up -d >"$temp_output" 2>&1 &
         local stack_pid=$!
 
         show_progress $stack_pid "Starting L2 stack containers..."
@@ -754,6 +785,7 @@ display_deployment_summary() {
     local contracts_deployed="$4"
     local with_blockscout="${5:-false}"
     local with_spammer="${6:-false}"
+    local driver_impl_choice="${7:-go}"
 
     local rpc_port="${PORT_L2_EXECUTION_ENGINE_1_HTTP:-8547}"
     local ws_port="${PORT_L2_EXECUTION_ENGINE_1_WS:-8548}"
@@ -788,6 +820,7 @@ display_deployment_summary() {
         echo "║  • Pacaya + Shasta contracts     (pre-existing)              ║"
     fi
     printf "║  • L2 execution client           %-28s║\n" "$client_choice"
+    printf "║  • Taiko-client driver impl      %-28s║\n" "$driver_impl_choice"
     echo "║  • Catalyst nodes + drivers      running                     ║"
     if [[ "$with_blockscout" == "true" ]]; then
         echo "║  • L2 Blockscout explorer        running                     ║"
@@ -881,6 +914,19 @@ main() {
     esac
 
     update_env_var "$ENV_FILE" "EXECUTION_CLIENT" "$client"
+
+    # ── Resolve taiko-client implementation ───────────────────────────────────
+    if [[ -z "$driver_impl" ]]; then
+        driver_impl="${DRIVER_IMPL:-go}"
+    fi
+    case "$driver_impl" in
+        "go"|"rs") ;;
+        *)
+            log_error "Invalid driver-impl: $driver_impl (must be go or rs)"
+            exit 1
+            ;;
+    esac
+    update_env_var "$ENV_FILE" "DRIVER_IMPL" "$driver_impl"
 
     # ── Nethermind genesis info ────────────────────────────────────────────────
     if [[ "$client" == "nethermind" ]]; then
@@ -983,6 +1029,7 @@ main() {
     echo
     log_info "Deployment configuration:"
     echo "  Execution client:  $client"
+    echo "  Driver impl:       $driver_impl"
     echo "  L1 environment:    ${environment:-n/a (skipped)}"
     echo "  Output mode:       $mode"
     echo "  Skip L1 devnet:    $skip_l1_devnet"
@@ -1077,7 +1124,7 @@ main() {
     # ── Phase 4: Start L2 stack ───────────────────────────────────────────────
     log_info "Phase 4: Starting L2 Catalyst stack"
 
-    if ! start_l2_stack "$client" "$mode" "$enable_l2_blockscout" "$enable_l2_spammer"; then
+    if ! start_l2_stack "$client" "$mode" "$enable_l2_blockscout" "$enable_l2_spammer" "$driver_impl"; then
         log_error "Failed to start L2 stack"
         exit 1
     fi
@@ -1087,7 +1134,7 @@ main() {
     check_l2_health "$client"
 
     # ── Summary ───────────────────────────────────────────────────────────────
-    display_deployment_summary "$client" "${environment:-local}" "$l1_deployed" "$contracts_deployed" "$enable_l2_blockscout" "$enable_l2_spammer"
+    display_deployment_summary "$client" "${environment:-local}" "$l1_deployed" "$contracts_deployed" "$enable_l2_blockscout" "$enable_l2_spammer" "$driver_impl"
 
     log_success "Taiko devnet deployment complete!"
 }
