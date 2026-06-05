@@ -262,24 +262,45 @@ configure_network_params() {
 
 # ─── Fork timestamp ──────────────────────────────────────────────────────────
 # Calculate and update fork timestamp in .env
-# Usage: update_fork_timestamp <env_file> [buffer_seconds]
+# Usage: update_fork_timestamp <env_file> [buffer_seconds] [update_shasta] [update_unzen]
 update_fork_timestamp() {
     local env_file="$1"
     local buffer="${2:-120}"
+    local update_shasta="${3:-true}"
+    local update_unzen="${4:-true}"
+    local last_fork_time=$(date +%s)
+    
+    if [[ "$update_shasta" == "true" ]]; then
+        local pacaya_timestamp
+        pacaya_timestamp=$(( last_fork_time + buffer ))
+        last_fork_time=$pacaya_timestamp
 
-    local new_timestamp
-    new_timestamp=$(( $(date +%s) + buffer ))
+        local readable_time
+        if [[ "$(uname)" == "Darwin" ]]; then
+            readable_time=$(date -r "$pacaya_timestamp" '+%Y-%m-%d %H:%M:%S')
+        else
+            readable_time=$(date -d "@$pacaya_timestamp" '+%Y-%m-%d %H:%M:%S')
+        fi
 
-    local readable_time
-    if [[ "$(uname)" == "Darwin" ]]; then
-        readable_time=$(date -r "$new_timestamp" '+%Y-%m-%d %H:%M:%S')
-    else
-        readable_time=$(date -d "@$new_timestamp" '+%Y-%m-%d %H:%M:%S')
+        log_info "Setting Shasta fork timestamp: $pacaya_timestamp ($readable_time)"
+        update_env_var "$env_file" "TAIKO_INTERNAL_SHASTA_TIME" "$pacaya_timestamp"
+        log_success "Shasta fork timestamp updated"
     fi
 
-    log_info "Setting fork timestamp: $new_timestamp ($readable_time)"
-    update_env_var "$env_file" "TAIKO_INTERNAL_SHASTA_TIME" "$new_timestamp"
-    log_success "Fork timestamp updated"
+    if [[ "$update_unzen" == "true" ]]; then
+        local unzen_timestamp=$(( last_fork_time + buffer ))
+        last_fork_time=$unzen_timestamp
+
+        if [[ "$(uname)" == "Darwin" ]]; then
+            readable_time=$(date -r "$unzen_timestamp" '+%Y-%m-%d %H:%M:%S')
+        else
+            readable_time=$(date -d "@$unzen_timestamp" '+%Y-%m-%d %H:%M:%S')
+        fi
+
+        log_info "Setting Unzen fork timestamp: $unzen_timestamp ($readable_time)"
+        update_env_var "$env_file" "UNZEN_FORK_TIME" "$unzen_timestamp"
+        log_success "Unzen fork timestamp updated"
+    fi
 }
 
 # ─── Prompt helpers ──────────────────────────────────────────────────────────
@@ -332,7 +353,22 @@ prompt_client_selection() {
     echo "  Select L2 execution client:                                   " >&2
     echo "║══════════════════════════════════════════════════════════════║" >&2
     echo "║  0 for nethermind (default)                                  ║" >&2
-    echo "║  1 for taiko-geth                                            ║" >&2
+    echo "║  1 for geth                                                  ║" >&2
+    echo "║  2 for alethia-reth                                          ║" >&2
+    echo "╚══════════════════════════════════════════════════════════════╝" >&2
+    echo >&2
+    read -p "Enter choice [0]: " choice
+    choice=${choice:-0}
+    echo "$choice"
+}
+
+prompt_driver_selection() {
+    echo >&2
+    echo "╔══════════════════════════════════════════════════════════════╗" >&2
+    echo "  Select L2 driver client:                                      " >&2
+    echo "║══════════════════════════════════════════════════════════════║" >&2
+    echo "║  0 for go (default)                                           ║" >&2
+    echo "║  1 for rust                                                   ║" >&2
     echo "╚══════════════════════════════════════════════════════════════╝" >&2
     echo >&2
     read -p "Enter choice [0]: " choice

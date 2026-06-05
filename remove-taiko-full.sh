@@ -7,8 +7,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ENCLAVE_NAME="surge-devnet"
 readonly DEPLOYMENTS_DIR="deployments"
 readonly ENV_FILE=".env"
-readonly COMPOSE_FILE_GETH="docker-compose.yml"
-readonly COMPOSE_FILE_NETHERMIND="docker-compose-nethermind.yml"
+readonly COMPOSE_FILE="docker-compose.yml"
 
 # Default argument values
 remove_l1_devnet=""
@@ -185,23 +184,30 @@ remove_l2_stack() {
     local temp_output="/tmp/taiko_remove_stack_output_$$"
 
     run_stack_down() {
-        # Best-effort docker compose down for both stacks with all profiles
-        docker compose -f "$COMPOSE_FILE_GETH" \
-            --profile stack --profile deploy --profile blockscout --profile spammer \
-            down --remove-orphans 2>&1 || true
-        docker compose -f "$COMPOSE_FILE_NETHERMIND" \
-            --profile stack --profile blockscout --profile spammer \
+        # Best-effort docker compose down with all stack-related profiles.
+        docker compose -f "$COMPOSE_FILE" \
+            --profile stack \
+            --profile deploy \
+            --profile blockscout \
+            --profile spammer \
+            --profile taiko-el-geth \
+            --profile taiko-el-nethermind \
+            --profile taiko-el-alethia-reth \
+            --profile taiko-client-rs \
+            --profile taiko-client-go \
             down --remove-orphans 2>&1 || true
 
         # Hard fallback: SIGKILL then force-remove all known containers by name
         # in case docker compose down missed any (project-name mismatch, profile
         # omissions, or containers that ignore SIGTERM)
         local known_containers=(
+            alethia-reth-1 alethia-reth-2
             taiko-nethermind-1 taiko-nethermind-2
             taiko-geth-1 taiko-geth-2
-            taiko-driver-1 taiko-driver-2
+            taiko-client-rs-1 taiko-client-go-1
+            taiko-client-rs-2 taiko-client-go-2
             catalyst-node-1 catalyst-node-2
-            fork-switch transfer-funds p2p-bootnode
+            transfer-funds p2p-bootnode
             web3signer_l1 web3signer_l2
             pacaya-deployer shasta-deployer
             l2-tx-spammer
@@ -248,16 +254,23 @@ remove_docker_volumes() {
     local temp_output="/tmp/taiko_remove_volumes_output_$$"
 
     run_volume_removal() {
-        # Best-effort docker compose down -v for both stacks
-        docker compose -f "$COMPOSE_FILE_GETH" \
-            --profile stack --profile blockscout --profile spammer \
-            down -v --remove-orphans 2>&1 || true
-        docker compose -f "$COMPOSE_FILE_NETHERMIND" \
-            --profile stack --profile blockscout --profile spammer \
+        # Best-effort docker compose down -v with all stack-related profiles.
+        docker compose -f "$COMPOSE_FILE" \
+            --profile stack \
+            --profile deploy \
+            --profile blockscout \
+            --profile spammer \
+            --profile taiko-el-geth \
+            --profile taiko-el-nethermind \
+            --profile taiko-el-alethia-reth \
+            --profile taiko-client-rs \
+            --profile taiko-client-go \
             down -v --remove-orphans 2>&1 || true
 
         # Hard fallback: remove known named volumes that compose may have missed
         local known_volumes=(
+            simple-taiko-node-nethermind_alethia-reth-data-1
+            simple-taiko-node-nethermind_alethia-reth-data-2
             simple-taiko-node-nethermind_taiko-nethermind-data-1
             simple-taiko-node-nethermind_taiko-nethermind-data-2
             simple-taiko-node-nethermind_taiko-geth-data-1
