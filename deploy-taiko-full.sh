@@ -12,6 +12,7 @@ readonly COMPOSE_FILE="docker-compose.yml"
 
 readonly STATIC_DIR="./static"
 readonly CHAINSPEC_FILE="${STATIC_DIR}/taiko-shasta-chainspec.json"
+readonly UNZEN_SCHEDULES_FILE="${STATIC_DIR}/unzen-zk-gas-schedules.json"
 readonly GENESIS_FILE="${STATIC_DIR}/genesis.json"
 readonly TAIKO_GENESIS_URL="${TAIKO_GENESIS_URL:-https://raw.githubusercontent.com/taikoxyz/taiko-geth/taiko/core/taiko_genesis/internal.json}"
 readonly GEN2SPEC_URL="${SURGE_GEN2SPEC_URL:-https://raw.githubusercontent.com/NethermindEth/core-scripts/refs/heads/main/gen2spec/gen2spec.jq}"
@@ -510,9 +511,20 @@ compute_genesis_hash() {
         return 1
     fi
 
+    # gen2spec.jq does not emit `unzenZkGasSchedules`. Without it, NMC's Unzen meter falls
+    # back to the failsafe multiplier (ushort.MaxValue) for every opcode/precompile and
+    # rejects every block as "zk gas limit exceeded" once Unzen is active. Inject the
+    # schedules from a checked-in JSON file so the resulting chainspec is complete.
+    if [[ ! -s "$UNZEN_SCHEDULES_FILE" ]]; then
+        log_error "Unzen ZK gas schedules file missing or empty: $UNZEN_SCHEDULES_FILE"
+        rm -f "$gen2spec_file" "$full_genesis_file"
+        return 1
+    fi
+
     if ! jq --from-file "$gen2spec_file" "$full_genesis_file" \
             | jq --arg hexTs "$hex_timestamp" '.engine.Taiko.shastaTimestamp = $hexTs' \
             | jq --arg hexUnzenTs "$hex_unzen_timestamp" '.engine.Taiko.unzenTimestamp = $hexUnzenTs' \
+            | jq --slurpfile schedules "$UNZEN_SCHEDULES_FILE" '.engine.Taiko.unzenZkGasSchedules = $schedules[0]' \
             > "$CHAINSPEC_FILE"; then
         log_error "Chainspec conversion failed — check gen2spec output above"
         rm -f "$gen2spec_file" "$full_genesis_file"
