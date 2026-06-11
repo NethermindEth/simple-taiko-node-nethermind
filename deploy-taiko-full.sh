@@ -64,7 +64,7 @@ show_help() {
     echo
     echo "Description:"
     echo "  Deploy a complete Taiko devnet stack: L1 (Kurtosis ethereum-package),"
-    echo "  L1 contracts (Pacaya + Shasta), and L2 Catalyst stack."
+    echo "  L1 contracts (Shasta), and L2 Catalyst stack."
     echo
     echo "Options:"
     echo "  --environment ENV     L1 devnet environment: local|remote (default: local)"
@@ -763,9 +763,9 @@ display_deployment_summary() {
         echo "║  • L1 devnet (Kurtosis)          (pre-existing)              ║"
     fi
     if [[ "$contracts_deployed" == "true" ]]; then
-        echo "║  • Pacaya + Shasta contracts     deployed                    ║"
+        echo "║  • Shasta contracts     deployed                    ║"
     else
-        echo "║  • Pacaya + Shasta contracts     (pre-existing)              ║"
+        echo "║  • Shasta contracts     (pre-existing)              ║"
     fi
     printf "║  • L2 execution client           %-28s║\n" "$client_choice"
     printf "║  • L2 driver client              %-28s║\n" "$driver_choice"
@@ -1052,8 +1052,7 @@ main() {
     if [[ "$skip_contracts" == "true" ]]; then
         log_info "Skipping contract deployment (--skip-contracts)"
 
-        if [[ ! -f "${DEPLOYMENTS_DIR}/deploy_l1_pacaya.json" ]] || \
-           [[ ! -f "${DEPLOYMENTS_DIR}/deploy_l1_shasta.json" ]]; then
+        if [[ ! -f "${DEPLOYMENTS_DIR}/deploy_l1_shasta.json" ]]; then
             log_warning "Contract deployment files not found in $DEPLOYMENTS_DIR/"
             log_warning "The stack may not start correctly without deployed contracts"
         fi

@@ -209,7 +209,7 @@ remove_l2_stack() {
             catalyst-node-1 catalyst-node-2
             transfer-funds p2p-bootnode
             web3signer_l1 web3signer_l2
-            pacaya-deployer shasta-deployer
+            shasta-deployer
             l2-tx-spammer
             l2-blockscout l2-blockscout-frontend
             l2-blockscout-postgres l2-blockscout-verif
@@ -312,7 +312,6 @@ remove_deployment_files() {
 
     if [[ -d "$DEPLOYMENTS_DIR" ]]; then
         local deployment_files=(
-            "${DEPLOYMENTS_DIR}/deploy_l1_pacaya.json"
             "${DEPLOYMENTS_DIR}/deploy_l1_shasta.json"
             "${DEPLOYMENTS_DIR}/deploy_l1.json"
             "${DEPLOYMENTS_DIR}/deploy_l1_base.json"
