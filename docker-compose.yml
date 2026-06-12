@@ -153,7 +153,6 @@ services:
         command:
             - |
                 NODEKEY=$$(tr -d '[:space:]' < /nodekey) && \
-                LOCAL_IP=$$(hostname -i | awk '{print $$1}') && \
                 exec /nethermind/nethermind \
                   --data-dir /data/nethermind \
                   --config=none \
@@ -170,7 +169,6 @@ services:
                   --Metrics.Enabled=true \
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
-                  --Network.LocalIp=$$LOCAL_IP \
                   --Init.DiscoveryEnabled=false \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
@@ -524,7 +522,6 @@ services:
         command:
             - |
                 NODEKEY=$$(tr -d '[:space:]' < /nodekey) && \
-                LOCAL_IP=$$(hostname -i | awk '{print $$1}') && \
                 exec /nethermind/nethermind \
                   --data-dir /data/nethermind \
                   --config=none \
@@ -541,7 +538,6 @@ services:
                   --Metrics.Enabled=true \
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
-                  --Network.LocalIp=$$LOCAL_IP \
                   --Init.DiscoveryEnabled=false \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
