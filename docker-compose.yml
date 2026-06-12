@@ -169,6 +169,7 @@ services:
                   --Metrics.Enabled=true \
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
+                  --Init.DiscoveryEnabled=false \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
@@ -537,6 +538,7 @@ services:
                   --Metrics.Enabled=true \
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
+                  --Init.DiscoveryEnabled=false \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
