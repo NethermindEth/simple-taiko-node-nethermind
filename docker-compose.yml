@@ -172,6 +172,7 @@ services:
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
+                  --Init.TrustedNodesPath=/static-nodes.json \
                   --KeyStore.TestNodeKey=$$NODEKEY \
                   --JsonRpc.MaxBatchResponseBodySize=120000000 \
                   --Sync.FastSync=false \
@@ -539,6 +540,7 @@ services:
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
+                  --Init.TrustedNodesPath=/static-nodes.json \
                   --KeyStore.TestNodeKey=$$NODEKEY \
                   --JsonRpc.MaxBatchResponseBodySize=120000000 \
                   --Sync.FastSync=false \
