@@ -133,7 +133,6 @@ services:
             - taiko-nethermind-data-1:/data/nethermind
             - ./static/taiko-shasta-chainspec.json:/taiko-shasta-chainspec.json:ro
             - ./nethermind-1-nodekey:/nodekey:ro
-            - ./nethermind-1-static-nodes.json:/static-nodes.json:ro
         ports:
             - "${PORT_L2_EXECUTION_ENGINE_1_HTTP}:8545"
             - "${PORT_L2_EXECUTION_ENGINE_1_WS}:8546"
@@ -500,7 +499,6 @@ services:
             - taiko-nethermind-data-2:/data/nethermind
             - ./static/taiko-shasta-chainspec.json:/taiko-shasta-chainspec.json:ro
             - ./nethermind-2-nodekey:/nodekey:ro
-            - ./nethermind-2-static-nodes.json:/static-nodes.json:ro
         ports:
             - "${PORT_L2_EXECUTION_ENGINE_2_HTTP}:8545"
             - "${PORT_L2_EXECUTION_ENGINE_2_WS}:8546"
