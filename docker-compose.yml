@@ -153,6 +153,7 @@ services:
         command:
             - |
                 NODEKEY=$$(tr -d '[:space:]' < /nodekey) && \
+                LOCAL_IP=$$(hostname -i) && \
                 exec /nethermind/nethermind \
                   --data-dir /data/nethermind \
                   --config=none \
@@ -170,6 +171,7 @@ services:
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
                   --Init.DiscoveryEnabled=false \
+                  --Network.LocalIp=$$LOCAL_IP \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
@@ -522,6 +524,7 @@ services:
         command:
             - |
                 NODEKEY=$$(tr -d '[:space:]' < /nodekey) && \
+                LOCAL_IP=$$(hostname -i) && \
                 exec /nethermind/nethermind \
                   --data-dir /data/nethermind \
                   --config=none \
@@ -539,6 +542,7 @@ services:
                   --Metrics.ExposeHost=0.0.0.0 \
                   --Network.P2PPort=30304 \
                   --Init.DiscoveryEnabled=false \
+                  --Network.LocalIp=$$LOCAL_IP \
                   --Network.DiscoveryPort=30304 \
                   --Network.OnlyStaticPeers=true \
                   --Init.StaticNodesPath=/static-nodes.json \
