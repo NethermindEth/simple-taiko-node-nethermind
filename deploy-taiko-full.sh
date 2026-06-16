@@ -389,7 +389,6 @@ compute_genesis_hash() {
         --http.vhosts='*' \
         --nodiscover --maxpeers 0 \
         --taiko \
-        --taiko.internal-shasta-time "${TAIKO_INTERNAL_SHASTA_TIME:-0}" \
         >/dev/null 2>&1
 
     log_info "Waiting for taiko-geth RPC (up to 30s)..."
