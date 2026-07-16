@@ -389,11 +389,17 @@ services:
         pull_policy: always
         volumes:
         - ./docker/web3signer_config:/config
+        - ./mtls:/mtls:ro
         networks:
         - preconf
         command:
         - '--key-store-path=/config'
         - '--http-host-allowlist=*'
+        - '--tls-keystore-file=/mtls/server.p12'
+        - '--tls-keystore-password-file=/mtls/server.password'
+        - '--tls-known-clients-file=/mtls/knownClients'
+        - '--access-logs-enabled=true'
+        - '--logging=ALL'
         - 'eth1'
         - '--chain-id=${L1_CHAIN_ID}'
         profiles:
