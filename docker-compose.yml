@@ -355,6 +355,7 @@ services:
         pull_policy: always
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
+            - ./mtls:/mtls:ro
         # ports:
             # Metrics
             # - 9898:9898
@@ -395,8 +396,8 @@ services:
         command:
         - '--key-store-path=/config'
         - '--http-host-allowlist=*'
-        - '--tls-keystore-file=/mtls/server.p12'
-        - '--tls-keystore-password-file=/mtls/server.password'
+        - '--tls-keystore-file=/mtls/web3signer_l1.p12'
+        - '--tls-keystore-password-file=/mtls/web3signer_l1.password'
         - '--tls-known-clients-file=/mtls/knownClients'
         - '--access-logs-enabled=true'
         - '--logging=ALL'
@@ -412,15 +413,21 @@ services:
         pull_policy: always
         volumes:
         - ./docker/web3signer_config:/config
+        - ./mtls:/mtls:ro
         networks:
         - preconf
         command:
         - '--key-store-path=/config'
         - '--http-host-allowlist=*'
+        - '--tls-keystore-file=/mtls/web3signer_l2.p12'
+        - '--tls-keystore-password-file=/mtls/web3signer_l2.password'
+        - '--tls-known-clients-file=/mtls/knownClients'
+        - '--access-logs-enabled=true'
+        - '--logging=ALL'
         - 'eth1'
         - '--chain-id=${L2_CHAIN_ID}'
         profiles:
-            - stack
+            - stack`
 
 
 
