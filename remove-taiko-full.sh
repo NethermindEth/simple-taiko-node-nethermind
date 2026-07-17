@@ -208,7 +208,7 @@ remove_l2_stack() {
             taiko-client-rs-2 taiko-client-go-2
             catalyst-node-1 catalyst-node-2
             transfer-funds p2p-bootnode
-            web3signer_l1 web3signer_l2
+            web3signer-l1 web3signer-l2
             shasta-deployer
             l2-tx-spammer
             l2-blockscout l2-blockscout-frontend

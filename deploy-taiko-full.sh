@@ -829,6 +829,12 @@ main() {
         fi
     fi
 
+    #Generate web3singers mtls certs
+    if ! generate_web3singers_certs; then
+        log_error "Failed to generate web3singers mTLS certificates"
+        exit 1
+    fi
+
     # Ensure deployments directory exists
     mkdir -p "$DEPLOYMENTS_DIR"
 
