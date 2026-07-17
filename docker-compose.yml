@@ -352,7 +352,7 @@ services:
         container_name: catalyst-node-1
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: never
+        pull_policy: always
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
             - ./mtls:/mtls:ro
@@ -732,7 +732,7 @@ services:
         container_name: catalyst-node-2
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: never
+        pull_policy: always
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
         # ports:
