@@ -352,7 +352,7 @@ services:
         container_name: catalyst-node-1
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: always
+        pull_policy: never
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
             - ./mtls:/mtls:ro
@@ -376,16 +376,16 @@ services:
         depends_on:
             transfer-funds:
                 condition: service_completed_successfully
-            web3signer_l1:
+            web3signer-l1:
                 condition: service_started
-            web3signer_l2:
+            web3signer-l2:
                 condition: service_started
         profiles:
             - stack
 
-    web3signer_l1:
-        container_name: web3signer_l1
-        image: consensys/web3signer:25.11.0
+    web3signer-l1:
+        container_name: web3signer-l1
+        image: consensys/web3signer:26.4.2
         restart: unless-stopped
         pull_policy: always
         volumes:
@@ -396,8 +396,8 @@ services:
         command:
         - '--key-store-path=/config'
         - '--http-host-allowlist=*'
-        - '--tls-keystore-file=/mtls/web3signer_l1.p12'
-        - '--tls-keystore-password-file=/mtls/web3signer_l1.password'
+        - '--tls-keystore-file=/mtls/web3signer-l1.p12'
+        - '--tls-keystore-password-file=/mtls/web3signer-l1.password'
         - '--tls-known-clients-file=/mtls/knownClients'
         - '--access-logs-enabled=true'
         - '--logging=ALL'
@@ -406,9 +406,9 @@ services:
         profiles:
             - stack
 
-    web3signer_l2:
-        container_name: web3signer_l2
-        image: consensys/web3signer:25.11.0
+    web3signer-l2:
+        container_name: web3signer-l2
+        image: consensys/web3signer:26.4.2
         restart: unless-stopped
         pull_policy: always
         volumes:
@@ -419,15 +419,15 @@ services:
         command:
         - '--key-store-path=/config'
         - '--http-host-allowlist=*'
-        - '--tls-keystore-file=/mtls/web3signer_l2.p12'
-        - '--tls-keystore-password-file=/mtls/web3signer_l2.password'
+        - '--tls-keystore-file=/mtls/web3signer-l2.p12'
+        - '--tls-keystore-password-file=/mtls/web3signer-l2.password'
         - '--tls-known-clients-file=/mtls/knownClients'
         - '--access-logs-enabled=true'
         - '--logging=ALL'
         - 'eth1'
         - '--chain-id=${L2_CHAIN_ID}'
         profiles:
-            - stack`
+            - stack
 
 
 
@@ -732,7 +732,7 @@ services:
         container_name: catalyst-node-2
         image: ${CATALYST_IMAGE}
         restart: unless-stopped
-        pull_policy: always
+        pull_policy: never
         volumes:
             - ./jwtsecret.hex:/jwtsecret.hex:ro
         # ports:

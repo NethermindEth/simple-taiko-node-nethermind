@@ -375,3 +375,13 @@ prompt_driver_selection() {
     choice=${choice:-0}
     echo "$choice"
 }
+
+#Generate Web3Signer L1 and L2 certificates
+generate_web3singers_certs() {
+    log_info "Generating Web3Signer mTLS certificates..."
+    # cd to mtls directory to generate certs with absolute paths    
+    cd "$(dirname "${BASH_SOURCE[0]}")/mtls" || exit 1
+    bash "generate.sh"
+    cd - || exit 1
+    log_success "Web3Signer mTLS certificates generated"
+}
